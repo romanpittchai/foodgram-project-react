@@ -172,7 +172,7 @@ class RecipeAndIngredient(models.Model):
         verbose_name='Ингредиент',
         help_text='Ингредиент',
         on_delete=models.CASCADE,
-        related_name='ingredient_recipe',
+        related_name='recipe_ingredient',
     )
     amount = models.PositiveIntegerField(
         validators=[
@@ -202,3 +202,77 @@ class RecipeAndIngredient(models.Model):
                 f'и количеством {self.amount}')
 
 
+class FavoriteRecipe(models.Model):
+    """Модель для любимых рецептов."""
+
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name='Рецепт',
+        help_text='Рецепт',
+        blank=False,
+        null=False,
+        on_delete=models.CASCADE,
+        related_name='favorite_recipe',
+    )
+    user = models.ForeignKey(
+        User,
+        verbose_name='Пользователь',
+        help_text='Пользователь',
+        on_delete=models.CASCADE,
+        related_name='favorite_recipe',
+    )
+
+
+    class Meta:
+        ordering = ('-id',)
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'user'],
+                name='unique_favorite_recipe',
+            ),
+        ]
+
+    def __str__(self) -> str:
+        """Для вывода строкового представления."""
+
+        return (f'Избранный рецепт {self.recipe[:AMOUNT_CHAR_TO_SLICE]} '
+                f'пользователя {self.user}.')
+
+    
+class ShoppingList(models.Model):
+    """Модель для списка покупок."""
+    
+    user = models.ForeignKey(
+        User,
+        verbose_name='Пользователь',
+        help_text='Пользователь',
+        on_delete=models.CASCADE,
+        related_name='shopping_list',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name='Рецепт',
+        help_text='Рецепт',
+        on_delete=models.CASCADE,
+        related_name='shopping_list',
+    )
+
+
+    class Meta:
+        ordering = ('-id',)
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_shopping_list',
+            ),
+        ]
+
+    def __str__(self) -> str:
+        """Для вывода строкового представления."""
+
+        return (f'Покупка рецепта {self.recipe[:AMOUNT_CHAR_TO_SLICE]} '
+                f'пользователем {self.user}.')
