@@ -4,6 +4,8 @@ from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 
 from users.models import User, Follow
+from .serializers import RegistrationSerializer, UserViewSet
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для класса User."""
@@ -18,8 +20,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'create':
-            return CustomUserCreateSerializer
-        return CustomUserSerializer
+            return RegistrationSerializer
+        return UserViewSet
 
     @action(
         detail=False,
