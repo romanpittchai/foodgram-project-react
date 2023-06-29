@@ -51,6 +51,12 @@ class Tag(models.Model):
         ordering = ('name',)
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'color', 'slug'],
+                name='unique_tag'
+            )
+        ]
 
     def __str__(self) -> str:
         """Для вывода строкового представления."""
@@ -157,6 +163,14 @@ class Recipe(models.Model):
             )
         ]
 
+    def is_favorite(self, user):
+        """Проверка на избранный рецепт."""
+
+        return self.favorite_recipe.filter(user=user).exists()
+
+    def in_the_grocery_basket(self, user):
+        return self.shopping_list.filter(user=user).exists()
+
     def __str__(self) -> str:
         """Для вывода строкового представления."""
 
@@ -189,7 +203,7 @@ class RecipeAndIngredient(models.Model):
             MinValueValidator(1, 'Нельзя задать меньше 1!'),
             MaxValueValidator(1000, 'Нельзя задать больше 1000!'),
         ],
-        verbose_name='количество',
+        verbose_name='Количество',
         help_text='Задайте количество продукта'
     )
 
