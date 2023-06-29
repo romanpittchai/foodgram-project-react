@@ -94,13 +94,11 @@ class User(AbstractUser):
 
     def __str__(self) -> str:
         """Для вывода строкового представления."""
-
         return self.get_full_name()
 
 
 class Follow(models.Model):
     """Модель подписки."""
-
     user = models.ForeignKey(
         User,
         verbose_name='Подписчик',
@@ -135,6 +133,5 @@ class Follow(models.Model):
 
     def __str__(self) -> str:
         """Для вывода строкового представления."""
-
         return (f'Подписчик {self.user[:AMOUNT_CHAR_TO_SLICE]} '
                 f'автора {self.author[:AMOUNT_CHAR_TO_SLICE]}.')

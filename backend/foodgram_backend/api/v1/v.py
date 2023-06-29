@@ -3,8 +3,13 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 
+from recipes.models import Ingredient, Recipe, RecipeAndIngredient, Tag
 from users.models import User, Follow
-from .serializers import RegistrationSerializer, UserViewSet
+from .serializers import (
+    RegistrationSerializer,
+    UserSerializer,
+    SubscriptionSerializer
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -21,10 +26,11 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return RegistrationSerializer
-        return UserViewSet
+        return UserSerializer
 
     @action(
         detail=False,
+        methods=['get'],
         permission_classes=[permissions.IsAuthenticated]
     )
     def subscriptions(self, request):
@@ -35,7 +41,6 @@ class UserViewSet(viewsets.ModelViewSet):
             many=True,
             context={
                 'request': request,
-                'format': self.format_kwarg,
                 'view': self
             }
         )
@@ -70,7 +75,7 @@ class UserViewSet(viewsets.ModelViewSet):
             )
         if request.method == 'POST':
             if following:
-                content = {'errors': 'Нельзя подписаться на автора дважды'}
+                content = {'errors': 'Вы уже подписаны на данного автора'}
                 return Response(
                     content,
                     status=status.HTTP_400_BAD_REQUEST,
@@ -83,10 +88,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 )
             Follow.objects.create(user=follower, author=followed)
             serializer = SubscriptionSerializer(
-                author,
+                followed,
                 context={
                     'request': request,
-                    'format': self.format_kwarg,
                     'view': self
                 }
             )

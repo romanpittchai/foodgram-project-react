@@ -1,5 +1,8 @@
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator
+)
 from django.db import models
 
 from users.models import User
@@ -9,7 +12,6 @@ AMOUNT_CHAR_TO_SLICE: int = 15
 
 class Tag(models.Model):
     """Модель для тега."""
-
     name = models.CharField(
         max_length=200,
         unique=True,
@@ -59,14 +61,11 @@ class Tag(models.Model):
         ]
 
     def __str__(self) -> str:
-        """Для вывода строкового представления."""
-
         return self.name[:AMOUNT_CHAR_TO_SLICE]
 
 
 class Ingredient(models.Model):
     """Модель для ингредиента."""
-
     name = models.CharField(
         max_length=200,
         blank=False,
@@ -93,15 +92,12 @@ class Ingredient(models.Model):
         ]
 
     def __str__(self) -> str:
-        """Для вывода строкового представления."""
-
         return (f'Название ингредиента {self.name[:AMOUNT_CHAR_TO_SLICE]} '
                 f'с ед. измерения {self.measurement_unit[:AMOUNT_CHAR_TO_SLICE]}.')
 
 
 class Recipe(models.Model):
     """Модель для рецепта."""
-
     name = models.CharField(
         max_length=200,
         blank=False,
@@ -163,17 +159,13 @@ class Recipe(models.Model):
             )
         ]
 
-    def is_favorite(self, user):
-        """Проверка на избранный рецепт."""
-
+    def is_favorited(self, user):
         return self.favorite_recipe.filter(user=user).exists()
 
-    def in_the_grocery_basket(self, user):
+    def is_in_shopping_cart(self, user):
         return self.shopping_list.filter(user=user).exists()
 
     def __str__(self) -> str:
-        """Для вывода строкового представления."""
-
         return self.name[:AMOUNT_CHAR_TO_SLICE]
 
 
@@ -183,7 +175,6 @@ class RecipeAndIngredient(models.Model):
     связки рецептов и ингредиентов,
     а так же для указания кол-ва.
     """
-
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
@@ -219,8 +210,6 @@ class RecipeAndIngredient(models.Model):
         ]
 
     def __str__(self) -> str:
-        """Для вывода строкового представления."""
-
         return (f'Рецепт {self.recipe[:AMOUNT_CHAR_TO_SLICE]} '
                 f'с ингредиентами {self.ingredient[:AMOUNT_CHAR_TO_SLICE]} '
                 f'и количеством {self.amount}')
@@ -228,7 +217,6 @@ class RecipeAndIngredient(models.Model):
 
 class FavoriteRecipe(models.Model):
     """Модель для любимых рецептов."""
-
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
@@ -259,15 +247,12 @@ class FavoriteRecipe(models.Model):
         ]
 
     def __str__(self) -> str:
-        """Для вывода строкового представления."""
-
         return (f'Избранный рецепт {self.recipe[:AMOUNT_CHAR_TO_SLICE]} '
                 f'пользователя {self.user}.')
 
     
 class ShoppingList(models.Model):
     """Модель для списка покупок."""
-    
     user = models.ForeignKey(
         User,
         verbose_name='Пользователь',
@@ -297,6 +282,5 @@ class ShoppingList(models.Model):
 
     def __str__(self) -> str:
         """Для вывода строкового представления."""
-
         return (f'Покупка рецепта {self.recipe[:AMOUNT_CHAR_TO_SLICE]} '
                 f'пользователем {self.user}.')
