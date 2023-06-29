@@ -140,12 +140,22 @@ class Recipe(models.Model):
             MaxValueValidator(1440, 'Нельзя задать больше суток!'),
         ],
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True,
+    )
 
 
     class Meta:
-        ordering = ('-id',)
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'name'],
+                name='unique_author_name'
+            )
+        ]
 
     def __str__(self) -> str:
         """Для вывода строкового представления."""
