@@ -1,10 +1,13 @@
 from collections import OrderedDict
 
+from django.db import transaction
+
 from django.shortcuts import get_object_or_404
 from djoser.serializers import (CurrentPasswordSerializer, PasswordSerializer,
                                 UserCreateSerializer, UserSerializer)
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Ingredient, Recipe, RecipeAndIngredient, Tag
+from rest_framework import serializers
 from users.models import User
 
 
@@ -69,7 +72,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         return data
 
 
-class SubscriptionSerializer(CustomUserSerializer):
+class SubscriptionSerializer(UserSerializer):
     """Сериализатор для подписки на других авторов рецептов."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -105,12 +108,7 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериалайзер для тега."""
     class Meta:
         model = Tag
-        fields = (
-            'id',
-            'name',
-            'color',
-            'slug',
-        )
+        fields = '__all__'
 
 
 
@@ -118,12 +116,19 @@ class IngredientSerializer(serializers.ModelSerializer):
     """Сериалайзер для ингридиента."""
     class Meta:
         model = Ingredient
+        fields = '__all__'
+
+class RecipeLightSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения рецептов на странице подписок."""
+    class Meta:
+        model = Recipe
         fields = (
             'id',
             'name',
-            'measurement_unit',
+            'image',
+            'cooking_time',
+            #'pub_date',
         )
-
 
 class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
     """
@@ -149,8 +154,8 @@ class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения рецептов."""
     tags = TagSerializer(many=True)
-    author = CustomUserSerializer(read_only=True)
-    ingredients = RecipeIngredientsSerializer(
+    author = UserSerializer(read_only=True)
+    ingredients = RecipeAndIngredientsSerializer(
         many=True,
         source='recipeandingredients',
     )
@@ -189,7 +194,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class RecipeCreateSerializer(RecipeSerializer):
     """Сериализатор для создания и обновления рецептов."""
-    tags = TagSerializer(many=True, queryset=Tag.objects.all())
+    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
     ingredients = RecipeAndIngredientsSerializer(
         many=True, source='recipeandingredients'
     )
@@ -225,15 +230,3 @@ class RecipeCreateSerializer(RecipeSerializer):
             )
         return recipe
 
-
-class RecipeLightSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения рецептов на странице подписок."""
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time',
-            'pub_date',
-        )

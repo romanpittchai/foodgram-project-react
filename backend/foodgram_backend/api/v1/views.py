@@ -4,13 +4,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase.pdfmetrics import registerFont
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-from rest_framework import mixins, permissions, status, viewsets, views
+from rest_framework import mixins, permissions, status, viewsets, views, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from users.models import Subscription, User
-from .filters import IngredientFilter, RecipeFilter
-from .permissions import (
+from users.models import User, Follow
+from ..filters import IngredientFilter, RecipeFilter
+from ..permissions import (
     IsAdminOrReadOnly,
     IsAuthorOrReadOnly,
     IsAuthorOrAdmin,
@@ -27,8 +27,8 @@ from .serializers import (
     SubscriptionSerializer,
     TagSerializer,
 )
-from recipes.models import Recipe, RecipeIngredients
-from .constants import (
+from recipes.models import Recipe, RecipeAndIngredient, Tag, Ingredient
+from utils.constants import (
     HEADER_FONT_SIZE, BODY_FONT_SIZE, HEADER_LEFT_MARGIN,
     BODY_LEFT_MARGIN, HEADER_HEIGHT, BODY_FIRST_LINE_HEIGHT,
     LINE_SPACING, BOTTOM_MARGIN, BULLET_POINT_SYMBOL
@@ -37,7 +37,7 @@ from .constants import (
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для класса User."""
     queryset = User.objects.all()
-    serializer_class = someSerialoizer
+    serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.SearchFilter]
     search_fields = ['username']

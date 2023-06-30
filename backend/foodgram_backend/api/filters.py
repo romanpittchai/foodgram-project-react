@@ -14,12 +14,12 @@ class RecipeFilter(django_filters.FilterSet):
         field_name='tag__slug',
         lookup_expr='icontains',
     )
-    is_favorited = filters.BooleanFilter(
+    is_favorited = django_filters.BooleanFilter(
         method='get_favorite',
         lookup_expr='icontains',
         label='favorite',
     )
-    is_in_shopping_cart = filters.BooleanFilter(
+    is_in_shopping_cart = django_filters.BooleanFilter(
         method='get_is_in_shopping_cart',
         lookup_expr='icontains',
         label='shopping_cart',
@@ -27,7 +27,7 @@ class RecipeFilter(django_filters.FilterSet):
 
 
     class Meta:
-        model = Title
+        model = Recipe
         fields = (
             'author',
             'tags',
@@ -49,9 +49,9 @@ class RecipeFilter(django_filters.FilterSet):
             )
 
 
-class IngredientFilter(filters.FilterSet):
+class IngredientFilter(django_filters.FilterSet):
     """Фильтр для Ingredient."""
-    name = filters.CharFilter(
+    name = django_filters.CharFilter(
         field_name='name',
         lookup_expr='istartswith',
     )
