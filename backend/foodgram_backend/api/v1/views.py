@@ -1,5 +1,3 @@
-
-
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as rf_filters
 from reportlab.lib.pagesizes import A4
@@ -12,9 +10,14 @@ from rest_framework.response import Response
 
 from users.models import Subscription, User
 from .filters import IngredientFilter, RecipeFilter
-from .permissions import IsAuthorOrReadOnly
+from .permissions import (
+    IsAdminOrReadOnly,
+    IsAuthorOrReadOnly,
+    IsAuthorOrAdmin,
+    IsAdmin
+)  
 from .serializers import (
-    CustomSetPasswordRetypeSerializer,
+    ChangePasswordSerializer,
     RegistrationSerializer,
     UserSerializer,
     IngredientSerializer,
@@ -25,89 +28,115 @@ from .serializers import (
     TagSerializer,
 )
 from recipes.models import Recipe, RecipeIngredients
+from .constants import (
+    HEADER_FONT_SIZE, BODY_FONT_SIZE, HEADER_LEFT_MARGIN,
+    BODY_LEFT_MARGIN, HEADER_HEIGHT, BODY_FIRST_LINE_HEIGHT,
+    LINE_SPACING, BOTTOM_MARGIN, BULLET_POINT_SYMBOL
+)
 
-class UserViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet,
-):
-    """Viewset for users registration and displaying."""
-
+class UserViewSet(viewsets.ModelViewSet):
+    """ViewSet для класса User."""
     queryset = User.objects.all()
+    serializer_class = someSerialoizer
     permission_classes = [permissions.AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username']
+    lookup_field = 'username'
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
         if self.action == 'create':
             return RegistrationSerializer
         return UserSerializer
 
-    @action(detail=False, permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[permissions.IsAuthenticated]
+    )
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user)
         page = self.paginate_queryset(queryset)
         serializer = SubscriptionSerializer(
             page,
             many=True,
-            context=self.get_serializer_context()
+            context={
+                'request': request,
+                'view': self
+            }
         )
         return self.get_paginated_response(serializer.data)
-
+    
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated]
+        permission_classes=[permissions.IsAuthenticated],
     )
-    def subscribe(self, request, pk):
-        author = get_object_or_404(User, id=pk)
-        subscription = Subscription.objects.filter(
-            user=request.user, author=author)
-        if request.method == 'DELETE' and not subscription.exists():
-            return Response(
-                {'errors': 'Unable to delete non-existent subscription.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if request.method == 'DELETE':
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        if subscription.exists():
-            return Response(
-                {'errors': 'You are already following this user.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if author == request.user:
-            return Response(
-                {'errors': 'Unable to subscribe to yourself.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        Subscription.objects.create(user=request.user, author=author)
-        serializer = SubscriptionSerializer(
-            author,
-            context=self.get_serializer_context()
+    def follow(self, request, pk):
+        """Подписка на автора."""
+        followed = get_object_or_404(User, id=pk)
+        follower = request.user
+        following = (
+            Follow.objects.filter(
+                user=follower,
+                author=followed,
+            ).exists()
         )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        if request.method == 'DELETE':
+            if not following:
+                content = {'errors': 'У вас не такой подписки'}
+                return Response(
+                    content,
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            following.delete()
+            return Response(
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        if request.method == 'POST':
+            if following:
+                content = {'errors': 'Вы уже подписаны на данного автора'}
+                return Response(
+                    content,
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            elif followed == follower:
+                content = {'errors': 'Нельзя подписаться самого себя'}
+                return Response(
+                    content,
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            Follow.objects.create(user=follower, author=followed)
+            serializer = SubscriptionSerializer(
+                followed,
+                context={
+                    'request': request,
+                    'view': self
+                }
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class SelfUserView(views.APIView):
-    """View class for the current user displaying."""
-
+    """Класс просмотра для отображения текущего пользователя."""
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = CustomUserSerializer(
+        serializer = UserSerializer(
             request.user,
             context=self.get_serializer_context()
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class SetPasswordRetypeView(views.APIView):
-    """View class for changing current user's password."""
-
-    permission_classes = [permissions.IsAuthenticated]
+class ChangePasswordView(views.APIView):
+    """Для изменения пароля текущего пользователя."""
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsAdminOrReadOnly
+    ]
 
     def post(self, request):
-        serializer = CustomSetPasswordRetypeSerializer(
+        serializer = ChangePasswordSerializer(
             data=request.data,
             context=self.get_serializer_context()
         )
@@ -119,16 +148,14 @@ class SetPasswordRetypeView(views.APIView):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """Viewset for tags display."""
-
+    """Для отображения тега."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [permissions.AllowAny]
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Viewset for ingredients display."""
-
+    """Для отображения ингредиента."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = [permissions.AllowAny]
@@ -137,11 +164,15 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Viewset for recipes."""
+    """Для отображения рецепта."""
 
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Recipe.objects.all()
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAuthorOrReadOnly,
+        IsAuthorOrAdmin,
+    ]
     filter_backends = [rf_filters.DjangoFilterBackend]
     filterset_class = RecipeFilter
 
@@ -159,19 +190,27 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def create_delete_or_scold(self, model, recipe, request):
         instance = model.objects.filter(recipe=recipe, user=request.user)
         name = model.__name__
-        if request.method == 'DELETE' and not instance.exists():
-            return Response(
-                {'errors': f'This recipe was not on your {name} list.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         if request.method == 'DELETE':
+            if not instance.exists():
+                content = {
+                    'errors': f'Этого рецепта нет в вашем списке.'
+                }
+                return Response(
+                    content,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        
         if instance.exists():
+            content = {
+                'errors': f'Этот рецепт уже был в вашем списке.'
+            }
             return Response(
-                {'errors': f'This recipe was already on your {name} list.'},
+                content,
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         model.objects.create(user=request.user, recipe=recipe)
         serializer = RecipeLightSerializer(
             recipe,
@@ -182,7 +221,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated]
+        permission_classes=[
+            permissions.IsAuthenticated,
+            IsAdmin
+        ]
     )
     def favorite(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
@@ -191,39 +233,40 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated]
+        permission_classes=[
+            permissions.IsAuthenticated,
+            IsAdmin
+        ]
     )
     def shopping_cart(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
         return self.create_delete_or_scold(ShoppingCart, recipe, request)
 
-    @action(detail=False, permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=False,
+        permission_classes=[
+            permissions.IsAuthenticated,
+            IsAdmin
+        ]
+    )
     def download_shopping_cart(self, request):
-        header_font_size = 20
-        body_font_size = 15
-        header_left_margin = 100
-        body_left_margin = 80
-        header_height = 770
-        body_first_line_height = 740
-        line_spacing = 20
-        bottom_margin = 100
-        bullet_point_symbol = u'\u2022'
-
         recipes_ingredients = RecipeIngredients.objects.filter(
-            recipe__shopping__user=request.user).order_by('ingredient')
+            recipe__shopping__user=request.user
+        ).order_by('ingredient')
         cart = recipes_ingredients.values(
             'ingredient__name', 'ingredient__measurement_unit',
         ).annotate(total=Sum('amount'))
 
-        shopping_list = []
+        shopping_list: list = []
         for ingredient in cart:
             name = ingredient['ingredient__name']
             unit = ingredient['ingredient__measurement_unit']
             total = ingredient['total']
-            line = bullet_point_symbol + f' {name} - {total} {unit}'
+            line = f"{BULLET_POINT_SYMBOL} {name} - {total} {unit}"
             recipes = recipes_ingredients.filter(ingredient__name=name)
             recipes_names = [
-                (item.recipe.name, item.amount) for item in recipes]
+                (item.recipe.name, item.amount) for item in recipes
+            ]
             shopping_list.append((line, recipes_names))
 
         response = HttpResponse(content_type='application/pdf')
@@ -231,25 +274,27 @@ class RecipeViewSet(viewsets.ModelViewSet):
         paper_sheet = canvas.Canvas(response, pagesize=A4)
         registerFont(TTFont('FreeSans', 'FreeSans.ttf'))
 
-        paper_sheet.setFont('FreeSans', header_font_size)
+        paper_sheet.setFont('FreeSans', HEADER_FONT_SIZE)
         paper_sheet.drawString(
-            header_left_margin, header_height, 'Список покупок')
+            HEADER_LEFT_MARGIN, HEADER_HEIGHT, 'Список покупок'
+        )
 
-        paper_sheet.setFont('FreeSans', body_font_size)
-        y_coordinate = body_first_line_height
+        paper_sheet.setFont('FreeSans', BODY_FONT_SIZE)
+        y_coordinate = BODY_FIRST_LINE_HEIGHT
         for ingredient, recipes_names in shopping_list:
-            paper_sheet.drawString(body_left_margin, y_coordinate, ingredient)
-            y_coordinate -= line_spacing
+            paper_sheet.drawString(BODY_LEFT_MARGIN, y_coordinate, ingredient)
+            y_coordinate -= LINE_SPACING
 
             for recipe_name in recipes_names:
-                if y_coordinate <= bottom_margin:
+                if y_coordinate <= BOTTOM_MARGIN:
                     paper_sheet.showPage()
-                    y_coordinate = body_first_line_height
-                    paper_sheet.setFont('FreeSans', body_font_size)
-                recipe_line = f'  {recipe_name[0]} ({recipe_name[1]})'
+                    y_coordinate = BODY_FIRST_LINE_HEIGHT
+                    paper_sheet.setFont('FreeSans', BODY_FONT_SIZE)
+                recipe_line = f"  {recipe_name[0]} ({recipe_name[1]})"
                 paper_sheet.drawString(
-                    body_left_margin, y_coordinate, recipe_line)
-                y_coordinate -= line_spacing
+                    BODY_LEFT_MARGIN, y_coordinate, recipe_line
+                )
+                y_coordinate -= LINE_SPACING
 
         paper_sheet.save()
         return response

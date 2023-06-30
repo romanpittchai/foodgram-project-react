@@ -2,7 +2,7 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-AMOUNT_CHAR_TO_SLICE: int = 15
+from utils.constants import AMOUNT_CHAR_TO_SLICE
 
 
 class User(AbstractUser):
@@ -11,7 +11,6 @@ class User(AbstractUser):
     class UserRole(models.TextChoices):
         """Модель выбора роли."""
         ADMIN = 'admin', 'Administrator'
-        MODERATOR = 'moderator', 'Moderator'
         USER = 'user', 'User'
 
     email = models.EmailField(
@@ -72,10 +71,6 @@ class User(AbstractUser):
     def is_admin(self):
         return (self.role == self.UserRole.ADMIN
                 or self.is_superuser)
-
-    @property
-    def is_moderator(self):
-        return self.role == self.UserRole.MODERATOR
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
