@@ -179,14 +179,14 @@ class RecipeAndIngredient(models.Model):
         verbose_name='Рецепт',
         help_text='Рецепт',
         on_delete=models.CASCADE,
-        related_name='recipe_ingredient',
+        related_name='recipeingredients',
     )
     ingredient = models.ForeignKey(
         Ingredient,
         verbose_name='Ингредиент',
         help_text='Ингредиент',
         on_delete=models.CASCADE,
-        related_name='recipe_ingredient',
+        related_name='recipeingredients',
     )
     amount = models.PositiveIntegerField(
         validators=[

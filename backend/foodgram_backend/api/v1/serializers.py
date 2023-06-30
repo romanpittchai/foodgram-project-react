@@ -127,7 +127,7 @@ class RecipeLightSerializer(serializers.ModelSerializer):
             'name',
             'image',
             'cooking_time',
-            #'pub_date',
+            'pub_date',
         )
 
 class RecipeAndIngredientsSerializer(serializers.ModelSerializer):

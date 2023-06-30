@@ -28,10 +28,6 @@ def load_to_bd(model, data):
 
     list_data: list = list()
     for data_item in data:
-        #for key in FOREIGN_KEY:
-        #    if key in data_item:
-        #        data_item[f'{key}_id'] = data_item[key]
-        #        del data_item[key]
         list_data.append(model(**data_item))
     model.objects.bulk_create(list_data)
     list_data.clear()
