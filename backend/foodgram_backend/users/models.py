@@ -33,7 +33,7 @@ class User(AbstractUser):
         unique=True,
         blank=False,
         validators=[RegexValidator(
-            regex=r'^[\w.@+-]+\z',
+            regex=r'^[\w.@+-]+\Z',
             message='Логин содержит один или '
                     'несколько недопустимых символов!'
         )]

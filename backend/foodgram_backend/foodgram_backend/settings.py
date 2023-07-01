@@ -129,6 +129,8 @@ AUTH_USER_MODEL = 'users.User'
 
 LOGIN_REDIRECT_URL = '/'
 
+LIST_SLICE = 15
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Foodgram',
     'DESCRIPTION': 'Grocery_Assistant',
