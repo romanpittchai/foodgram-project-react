@@ -8,10 +8,10 @@ from utils.constants import AMOUNT_CHAR_TO_SLICE
 class User(AbstractUser):
     """Модель пользователя."""
 
-    class UserRole(models.TextChoices):
-        """Модель выбора роли."""
-        ADMIN = 'admin', 'Administrator'
-        USER = 'user', 'User'
+    #class UserRole(models.TextChoices):
+    #    """Модель выбора роли."""
+    #    ADMIN = 'admin', 'Administrator'
+    #    USER = 'user', 'User'
 
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
@@ -20,12 +20,12 @@ class User(AbstractUser):
         unique=True,
         blank=False,
     )
-    role = models.CharField(
-        verbose_name='Роль',
-        max_length=50,
-        choices=UserRole.choices,
-        default=UserRole.USER,
-    )
+    #role = models.CharField(
+    #    verbose_name='Роль',
+    #    max_length=50,
+    #    choices=UserRole.choices,
+    #    default=UserRole.USER,
+    #)
     username = models.CharField(
         verbose_name='Логин пользователя',
         help_text='Указать логин пользователя',
@@ -50,15 +50,15 @@ class User(AbstractUser):
         max_length=150,
         blank=False,
     )
-    bio = models.TextField(
-        verbose_name='О себе',
-        blank=True,
-        help_text='Информация о себе',
-    )
-    date_joined = models.DateTimeField(
-        verbose_name='Дата регистрации',
-        auto_now_add=True,
-    )
+    #bio = models.TextField(
+    #    verbose_name='О себе',
+    #    blank=True,
+    #    help_text='Информация о себе',
+    #)
+    #date_joined = models.DateTimeField(
+    #    verbose_name='Дата регистрации',
+    #    auto_now_add=True,
+    #)
     password = models.CharField(
         verbose_name='Пароль',
         help_text='Указать пароль',
@@ -67,10 +67,10 @@ class User(AbstractUser):
         null=False,
     )
 
-    @property
-    def is_admin(self):
-        return (self.role == self.UserRole.ADMIN
-                or self.is_superuser)
+    #@property
+    #def is_admin(self):
+    #    return (self.role == self.UserRole.ADMIN
+    #            or self.is_superuser)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']

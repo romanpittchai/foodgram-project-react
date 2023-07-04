@@ -11,9 +11,19 @@ from rest_framework import serializers
 from users.models import User
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(UserSerializer):
     """Сериализатор для модели User."""
     is_subscribed = serializers.SerializerMethodField()
+
+    def get_is_subscribed(self, obj):
+        """
+        Проверка на возможность подписки.
+        Авторизованный пользователь и аноним.
+        """
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return obj.following.filter(user=request.user).exists()
 
     class Meta:
         model = User
@@ -25,18 +35,8 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'is_subscribed',
-            'bio',
-            'role',
         )
-        def get_is_subscribed(self, obj):
-            """
-            Проверка на возможность подписки.
-            Авторизованный пользователь и аноним.
-            """
-            request = self.context.get('request')
-            if not request or request.user.is_anonymous:
-                return False
-            return obj.following.filter(user=request.user).exists()
+    
 
 class RegistrationSerializer(UserCreateSerializer):
     """Сериализатор для регистрации нового пользователя."""

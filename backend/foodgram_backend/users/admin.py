@@ -12,12 +12,13 @@ class UserAdmin(admin.ModelAdmin):
 
     list_display = (
         'pk', 'email',
-        'role', 'username',
+        #'role', 
+        'username',
         'first_name', 'last_name',
-        'bio', 'date_joined',
+        #'bio', 'date_joined',
     )
     list_display_links = ('username',)
-    search_fields = ('email', 'username', 'role')
+    search_fields = ('email', 'username',)
     list_filter = ('id', 'email', 'username')
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-empty-'

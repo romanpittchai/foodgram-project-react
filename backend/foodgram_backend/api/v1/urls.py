@@ -2,7 +2,7 @@ from rest_framework import routers
 
 from django.urls import include, path
 
-from api.v1.views import (
+from .views import (
     UserViewSet, SelfUserView,
     ChangePasswordView, TagViewSet,
     IngredientViewSet, RecipeViewSet,
@@ -23,16 +23,18 @@ router_for_v1.register(
 )
 
 urlpatterns = [
-    path('', include(router_for_v1.urls)),
+    
     path(
-        'users/me/', SelfUserView.as_view(),
-        name='self_user'
+        'users/me/',SelfUserView.as_view(),
+        name='me'
     ),
     path(
         'users/set_password/',
         ChangePasswordView.as_view(),
         name='set_password'
     ),
+    path('', include(router_for_v1.urls)),
+    path('', include('djoser.urls')),
     path(
         'auth/', include('djoser.urls.authtoken'),
         name='token'

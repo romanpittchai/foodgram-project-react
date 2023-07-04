@@ -6,6 +6,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import mixins, permissions, status, viewsets, views, filters
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from users.models import User, Follow
@@ -37,7 +38,7 @@ from utils.constants import (
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для класса User."""
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    #serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.SearchFilter]
     search_fields = ['username']
@@ -52,7 +53,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['get'],
-        permission_classes=[permissions.IsAuthenticated]
+        permission_classes=[permissions.AllowAny]
     )
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user)
@@ -62,6 +63,7 @@ class UserViewSet(viewsets.ModelViewSet):
             many=True,
             context={
                 'request': request,
+                'format': self.format_kwarg,
                 'view': self
             }
         )
@@ -109,21 +111,53 @@ class UserViewSet(viewsets.ModelViewSet):
             Follow.objects.create(user=follower, author=followed)
             serializer = SubscriptionSerializer(
                 followed,
-                context={
-                    'request': request,
-                    'view': self
-                }
+                context=self.get_serializer_context()
+                #context={
+                #    'request': request,
+                #    'view': self
+                #}
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class SelfUserView(views.APIView):
-    """Класс просмотра для отображения текущего пользователя."""
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        context['user'] = self.request.user
+        return context
 
     def get(self, request):
         serializer = UserSerializer(
             request.user,
             context=self.get_serializer_context()
+            #context={
+            #    'request': request,
+            #    'format': self.format_kwarg,
+            #    'view': self
+            #}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class SelfUserView(GenericAPIView):
+    """Класс просмотра для отображения текущего пользователя."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        context['user'] = self.request.user
+        return context
+
+    def get(self, request):
+        serializer = UserSerializer(
+            request.user,
+            context=self.get_serializer_context()
+            #context={
+            #    'request': request,
+            #    'format': self.format_kwarg,
+            #    'view': self
+            #}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
