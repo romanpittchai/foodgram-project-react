@@ -1,4 +1,4 @@
-is_superuser,is_staff,is_active,email,role,username,first_name,last_name,bio,date_joined,password
-0,0,1,user1@test.com,user,userTestname1,fistTest,lastTest,Test user,01.07.23,1234abc
-0,0,1,user2@test.com,user,userTestname2,fistTest2,lastTest2,Test user 2,01.07.23,1234abcd
-1,1,1,admin@test.com,admin,Admin,fistTestadmin,lastTestadmin,Test admin,01.07.23,1234admin
+is_superuser,is_staff,is_active,email,username,first_name,last_name,password
+0,0,1,user1@test.com,userTestname1,fistTest,lastTest,1234abc
+0,0,1,user2@test.com,userTestname2,fistTest2,lastTest2,1234abcd
+1,1,1,admin@test.com,Admin,fistTestadmin,lastTestadmin,1234admin
