@@ -61,11 +61,12 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = SubscriptionSerializer(
             page,
             many=True,
-            context={
-                'request': request,
-                'format': self.format_kwarg,
-                'view': self
-            }
+            context=self.get_serializer_context()
+            #context={
+            #    'request': request,
+            #    'format': self.format_kwarg,
+            #    'view': self
+            #}
         )
         return self.get_paginated_response(serializer.data)
     
@@ -131,11 +132,6 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(
             request.user,
             context=self.get_serializer_context()
-            #context={
-            #    'request': request,
-            #    'format': self.format_kwarg,
-            #    'view': self
-            #}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -151,18 +147,12 @@ class SelfUserView(GenericAPIView):
 
     def get(self, request):
         serializer = UserSerializer(
-            request.user,
             context=self.get_serializer_context()
-            #context={
-            #    'request': request,
-            #    'format': self.format_kwarg,
-            #    'view': self
-            #}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ChangePasswordView(views.APIView):
+class ChangePasswordView(GenericAPIView):
     """Для изменения пароля текущего пользователя."""
     permission_classes = [
         permissions.IsAuthenticated,
