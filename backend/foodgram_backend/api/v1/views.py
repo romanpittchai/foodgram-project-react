@@ -45,6 +45,12 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     http_method_names = ['get', 'post', 'patch', 'delete']
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        context['user'] = self.request.user
+        return context
+
     def get_serializer_class(self):
         if self.action == 'create':
             return RegistrationSerializer
@@ -113,20 +119,10 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = SubscriptionSerializer(
                 followed,
                 context=self.get_serializer_context()
-                #context={
-                #    'request': request,
-                #    'view': self
-                #}
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     # permission_classes = [permissions.IsAuthenticated]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        context['user'] = self.request.user
-        return context
 
     def get(self, request):
         serializer = UserSerializer(
@@ -176,6 +172,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [permissions.AllowAny]
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -184,6 +181,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [rf_filters.DjangoFilterBackend]
+    pagination_class = None
     filterset_class = IngredientFilter
 
 
@@ -194,8 +192,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
-        IsAuthorOrReadOnly,
-        IsAuthorOrAdmin,
+        #IsAuthorOrReadOnly,
+        #IsAuthorOrAdmin,
     ]
     filter_backends = [rf_filters.DjangoFilterBackend]
     filterset_class = RecipeFilter
@@ -245,10 +243,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=[
-            permissions.IsAuthenticated,
-            IsAdmin
-        ]
+        #permission_classes=[
+        #    permissions.IsAuthenticated,
+        #    IsAdmin
+        #]
     )
     def favorite(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
@@ -258,8 +256,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=['post', 'delete'],
         detail=True,
         permission_classes=[
-            permissions.IsAuthenticated,
-            IsAdmin
+            #permissions.IsAuthenticated,
+            #IsAdmin
         ]
     )
     def shopping_cart(self, request, pk):

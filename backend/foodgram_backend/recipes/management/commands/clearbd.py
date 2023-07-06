@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
 
-from recipes.models import Ingredient
+from recipes.models import Ingredient, Tag
 from users.models import User
 
-MODELS = (User, Ingredient)
+MODELS = (User, Ingredient, Tag)
 
 
 class Command(BaseCommand):

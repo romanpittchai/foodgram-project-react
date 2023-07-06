@@ -13,8 +13,8 @@ RUN npm run build
 
 CMD cp -r build result_build
 
-RUN apk add --upgrade apk-tools
+#RUN apk add --upgrade apk-tools
 
-RUN apk update
+#RUN apk update
 
-RUN apk add mc tree nano
+#RUN apk add mc tree nano

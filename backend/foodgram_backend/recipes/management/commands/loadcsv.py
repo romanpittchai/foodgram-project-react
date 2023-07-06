@@ -5,12 +5,13 @@ import sys
 from django.core.management.base import BaseCommand
 
 from foodgram_backend.settings import STATIC_CSV_JSON_FILES_DIRS
-from recipes.models import Ingredient
+from recipes.models import Ingredient, Tag
 from users.models import User
 
 DICT_FILE = {
     Ingredient: 'ingredients.csv',
-    User: 'users.csv'
+    User: 'users.csv',
+    Tag: 'tags.csv',
 }
 
 

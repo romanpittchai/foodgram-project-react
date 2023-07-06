@@ -135,8 +135,13 @@ class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
     Сериализатор для отображения ингредиентов
     определенного рецепта.
     """
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient.id'
+    )
+    name = serializers.ReadOnlyField(
+        source='ingredient.name',
+    )
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
@@ -144,8 +149,7 @@ class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeAndIngredient
         fields = (
-            'id',
-            'name',
+            'id','name',
             'measurement_unit',
             'amount',
         ),
@@ -157,7 +161,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     ingredients = RecipeAndIngredientsSerializer(
         many=True,
-        source='recipeandingredients',
+        source='recipeingredients',
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -166,17 +170,12 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
-            'id',
-            'tags',
-            'author',
-            'ingredients',
+            'id', 'tags',
+            'author', 'ingredients',
             'is_favorited',
             'is_in_shopping_cart',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
-            'pub_date',
+            'name', 'image',
+            'text', 'cooking_time',
         )
 
     def get_is_favorited(self, obj):
@@ -191,17 +190,36 @@ class RecipeSerializer(serializers.ModelSerializer):
             return False
         return obj.in_the_grocery_basket(request.user)
 
+class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
+   
+
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient', queryset=Ingredient.objects.all())
+
+    class Meta:
+        model = RecipeAndIngredient
+        fields = ('id', 'amount',)
+
+    def to_representation(self, instance):
+        old_repr = super().to_representation(instance)
+        new_repr = OrderedDict()
+        new_repr['id'] = old_repr['id']
+        new_repr['name'] = instance.ingredient.name
+        new_repr['measurement_unit'] = instance.ingredient.measurement_unit
+        new_repr['amount'] = old_repr['amount']
+        return new_repr
+
 
 class RecipeCreateSerializer(RecipeSerializer):
     """Сериализатор для создания и обновления рецептов."""
     tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
-    ingredients = RecipeAndIngredientsSerializer(
-        many=True, source='recipeandingredients'
+    ingredients = RecipeCreateIngredientsSerializer(
+        many=True, source='recipeingredients'
     )
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipeandingredients')
+        ingredients = validated_data.pop('recipeingredients')
         recipe = super().create(validated_data)
         recipe.tags.set(tags)
         for ingredient_data in ingredients:
@@ -217,7 +235,7 @@ class RecipeCreateSerializer(RecipeSerializer):
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipeandingredients')
+        ingredients = validated_data.pop('recipeingredients')
         recipe = super().update(instance, validated_data)
         recipe.tags.set(tags)
         RecipeAndIngredient.objects.filter(recipe=recipe).delete()
@@ -229,4 +247,3 @@ class RecipeCreateSerializer(RecipeSerializer):
                 amount=ingredient_data['amount']
             )
         return recipe
-

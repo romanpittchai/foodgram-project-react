@@ -108,17 +108,18 @@ class Recipe(models.Model):
         User,
         verbose_name='Автор рецепта',
         help_text='Автор рецепта',
-        related_name = 'recipe',
+        related_name = 'recipes',
         on_delete=models.CASCADE
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Теги',
         help_text='Выбор тегов',
-        related_name = 'recipe',
+        related_name = 'recipes',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
+        related_name = 'recipes',
         through='RecipeAndIngredient',
         verbose_name='Ингредиенты',
         help_text='Выбор ингредиентов',
