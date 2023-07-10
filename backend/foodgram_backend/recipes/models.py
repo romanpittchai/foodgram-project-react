@@ -147,6 +147,14 @@ class Recipe(models.Model):
         auto_now_add=True,
     )
 
+    def is_favorited(self, user):
+        return self.favorite_recipe.filter(user=user).exists()
+
+    def is_in_shopping_cart(self, user):
+        return self.shopping_list.filter(user=user).exists()
+
+    def __str__(self) -> str:
+        return self.name[:AMOUNT_CHAR_TO_SLICE]
 
     class Meta:
         ordering = ('-pub_date',)
@@ -159,14 +167,6 @@ class Recipe(models.Model):
             )
         ]
 
-    def is_favorited(self, user):
-        return self.favorite_recipe.filter(user=user).exists()
-
-    def is_in_shopping_cart(self, user):
-        return self.shopping_list.filter(user=user).exists()
-
-    def __str__(self) -> str:
-        return self.name[:AMOUNT_CHAR_TO_SLICE]
 
 
 class RecipeAndIngredient(models.Model):

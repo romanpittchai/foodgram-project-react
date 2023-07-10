@@ -15,7 +15,6 @@ from ..permissions import (
     IsAdminOrReadOnly,
     IsAuthorOrReadOnly,
     IsAuthorOrAdmin,
-    IsAdmin
 )  
 from .serializers import (
     ChangePasswordSerializer,
@@ -28,7 +27,7 @@ from .serializers import (
     SubscriptionSerializer,
     TagSerializer,
 )
-from recipes.models import Recipe, RecipeAndIngredient, Tag, Ingredient
+from recipes.models import Recipe, RecipeAndIngredient, Tag, Ingredient, FavoriteRecipe, ShoppingList
 from utils.constants import (
     HEADER_FONT_SIZE, BODY_FONT_SIZE, HEADER_LEFT_MARGIN,
     BODY_LEFT_MARGIN, HEADER_HEIGHT, BODY_FIRST_LINE_HEIGHT,
@@ -38,7 +37,7 @@ from utils.constants import (
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для класса User."""
     queryset = User.objects.all()
-    #serializer_class = UserSerializer
+    serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.SearchFilter]
     search_fields = ['username']
@@ -59,7 +58,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['get'],
-        permission_classes=[permissions.AllowAny]
+        permission_classes=[permissions.IsAuthenticated]
     )
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user)
@@ -68,18 +67,13 @@ class UserViewSet(viewsets.ModelViewSet):
             page,
             many=True,
             context=self.get_serializer_context()
-            #context={
-            #    'request': request,
-            #    'format': self.format_kwarg,
-            #    'view': self
-            #}
         )
         return self.get_paginated_response(serializer.data)
     
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.AllowAny],
     )
     def follow(self, request, pk):
         """Подписка на автора."""
@@ -122,7 +116,7 @@ class UserViewSet(viewsets.ModelViewSet):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    # permission_classes = [permissions.IsAuthenticated]
+    #permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         serializer = UserSerializer(
@@ -192,11 +186,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
-        #IsAuthorOrReadOnly,
-        #IsAuthorOrAdmin,
+        IsAuthorOrReadOnly,
+        IsAuthorOrAdmin,
     ]
-    filter_backends = [rf_filters.DjangoFilterBackend]
+    filter_backends = [rf_filters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = RecipeFilter
+    search_fields = ['name', 'author__username']
+    ordering_fields = ['name', 'pub_date']
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -243,32 +239,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['post', 'delete'],
         detail=True,
-        #permission_classes=[
-        #    permissions.IsAuthenticated,
-        #    IsAdmin
-        #]
+        permission_classes=[
+            permissions.IsAuthenticated,
+        ]
     )
     def favorite(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
-        return self.create_delete_or_scold(Favorite, recipe, request)
+        return self.create_delete_or_scold(FavoriteRecipe, recipe, request)
 
     @action(
         methods=['post', 'delete'],
         detail=True,
         permission_classes=[
-            #permissions.IsAuthenticated,
-            #IsAdmin
+            permissions.IsAuthenticated
         ]
     )
     def shopping_cart(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
-        return self.create_delete_or_scold(ShoppingCart, recipe, request)
+        return self.create_delete_or_scold(ShoppingList, recipe, request)
 
     @action(
         detail=False,
         permission_classes=[
-            permissions.IsAuthenticated,
-            IsAdmin
+            permissions.IsAuthenticated
         ]
     )
     def download_shopping_cart(self, request):
