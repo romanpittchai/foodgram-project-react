@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from django.db import transaction
+#from django.db import transaction
 
 from django.shortcuts import get_object_or_404
 from djoser.serializers import (CurrentPasswordSerializer, PasswordSerializer,
@@ -11,7 +11,7 @@ from rest_framework import serializers
 from users.models import User
 
 
-class UserSerializer(UserSerializer):
+class CustUserSerializer(UserSerializer):
     """Сериализатор для модели User."""
     is_subscribed = serializers.SerializerMethodField()
 
@@ -70,7 +70,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         return data
 
 
-class SubscriptionSerializer(UserSerializer):
+class SubscriptionSerializer(CustUserSerializer):
     """Сериализатор для подписки на других авторов рецептов."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -154,7 +154,7 @@ class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения рецептов."""
     tags = TagSerializer(many=True)
-    author = UserSerializer(read_only=True)
+    author = CustUserSerializer(read_only=True)
     ingredients = RecipeAndIngredientsSerializer(
         many=True,
         source='recipeingredients',

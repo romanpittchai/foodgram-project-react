@@ -19,7 +19,7 @@ from ..permissions import (
 from .serializers import (
     ChangePasswordSerializer,
     RegistrationSerializer,
-    UserSerializer,
+    CustUserSerializer,
     IngredientSerializer,
     RecipeCreateSerializer,
     RecipeLightSerializer,
@@ -37,11 +37,9 @@ from utils.constants import (
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для класса User."""
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = CustUserSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['username']
-    lookup_field = 'username'
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_context(self):
@@ -53,7 +51,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return RegistrationSerializer
-        return UserSerializer
+        return CustUserSerializer
 
     @action(
         detail=False,
@@ -70,12 +68,13 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         return self.get_paginated_response(serializer.data)
     
+
     @action(
         methods=['post', 'delete'],
         detail=True,
         permission_classes=[permissions.AllowAny],
     )
-    def follow(self, request, pk):
+    def subscribe(self, request, pk):
         """Подписка на автора."""
         followed = get_object_or_404(User, id=pk)
         follower = request.user
@@ -92,7 +91,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     content,
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            following.delete()
+            Follow.objects.filter(user=follower, author=followed).delete()
             return Response(
                 status=status.HTTP_204_NO_CONTENT,
             )
@@ -119,7 +118,7 @@ class UserViewSet(viewsets.ModelViewSet):
     #permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(
+        serializer = CustUserSerializer(
             request.user,
             context=self.get_serializer_context()
         )
@@ -136,7 +135,7 @@ class SelfUserView(GenericAPIView):
         return context
 
     def get(self, request):
-        serializer = UserSerializer(
+        serializer = CustUserSerializer(
             context=self.get_serializer_context()
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
