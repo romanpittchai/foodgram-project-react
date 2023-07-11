@@ -116,25 +116,13 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-    def get(self, request):
-        serializer = CustUserSerializer(
-            request.user,
-            context=self.get_serializer_context()
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 class SelfUserView(GenericAPIView):
     """Класс просмотра для отображения текущего пользователя."""
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        context['user'] = self.request.user
-        return context
-
     def get(self, request):
         serializer = CustUserSerializer(
+            request.user,
             context=self.get_serializer_context()
         )
         return Response(serializer.data, status=status.HTTP_200_OK)

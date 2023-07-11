@@ -7,9 +7,8 @@ from recipes.models import Ingredient, Recipe, Tag
 
 class RecipeFilter(filters.FilterSet):
     """Фильтры для Recipe."""
-    author = filters.NumberFilter(
-        field_name='user__username',
-        lookup_expr='icontains',
+    author = filters.CharFilter(
+        lookup_expr='exact',
         label='author',
     )
     tags = filters.filters.ModelMultipleChoiceFilter(
@@ -17,6 +16,7 @@ class RecipeFilter(filters.FilterSet):
         field_name='tags__slug',
         to_field_name='slug',
         lookup_expr='icontains',
+        label='tags',
     )
     is_favorited = filters.BooleanFilter(
         method='get_favorite',

@@ -15,16 +15,6 @@ class CustUserSerializer(UserSerializer):
     """Сериализатор для модели User."""
     is_subscribed = serializers.SerializerMethodField()
 
-    def get_is_subscribed(self, obj):
-        """
-        Проверка на возможность подписки.
-        Авторизованный пользователь и аноним.
-        """
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return obj.following.filter(user=request.user).exists()
-
     class Meta:
         model = User
         
@@ -35,6 +25,12 @@ class CustUserSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.following.filter(user=request.user).exists()
+        return False
     
 
 class RegistrationSerializer(UserCreateSerializer):
