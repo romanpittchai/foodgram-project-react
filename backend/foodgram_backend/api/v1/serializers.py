@@ -50,22 +50,14 @@ class RegistrationSerializer(UserCreateSerializer):
             'password',
         )
 
-class ChangePasswordSerializer(serializers.Serializer):
+class ChangePasswordSerializer(CurrentPasswordSerializer, PasswordSerializer):
     """Сериализатор для изменения пароля."""
-    current_password = CurrentPasswordSerializer(required=True)
-    new_password = PasswordSerializer(required=True)
-    re_new_password = serializers.CharField(required=True)
-
     def validate(self, data):
         new_password = data.get('new_password')
-        re_new_password = data.get('re_new_password')
-        if new_password == self.context['request'].user.password:
+        current_password = data.get('current_password')
+        if new_password == current_password:
             raise serializers.ValidationError(
                 'Старый и новый пароли не должны совпадать.'
-            )
-        if new_password != re_new_password:
-            raise serializers.ValidationError(
-                'Новые пароли не совпадают.'
             )
         return data
 

@@ -72,7 +72,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=[permissions.AllowAny],
+        permission_classes=[permissions.IsAuthenticated],
     )
     def subscribe(self, request, pk):
         """Подписка на автора."""
@@ -115,7 +115,6 @@ class UserViewSet(viewsets.ModelViewSet):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    #permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         serializer = CustUserSerializer(
@@ -144,14 +143,13 @@ class SelfUserView(GenericAPIView):
 class ChangePasswordView(GenericAPIView):
     """Для изменения пароля текущего пользователя."""
     permission_classes = [
-        permissions.IsAuthenticated,
-        IsAdminOrReadOnly
+        permissions.IsAuthenticated
     ]
 
     def post(self, request):
         serializer = ChangePasswordSerializer(
             data=request.data,
-            context=self.get_serializer_context()
+            context=self.get_serializer_context(),
         )
         if serializer.is_valid():
             request.user.set_password(serializer.data['new_password'])
@@ -264,7 +262,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ]
     )
     def download_shopping_cart(self, request):
-        recipes_ingredients = RecipeIngredients.objects.filter(
+        recipes_ingredients = RecipeAndIngredient.objects.filter(
             recipe__shopping__user=request.user
         ).order_by('ingredient')
         cart = recipes_ingredients.values(
