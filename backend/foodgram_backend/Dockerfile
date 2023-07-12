@@ -1,8 +1,11 @@
 FROM python:3.9-slim-bullseye
 
-ARG some_variable_name
-
 WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends apt-utils && \
+    apt-get upgrade -y && \
+    apt-get install -y make mc tree nano
 
 RUN python3 -m pip install --upgrade pip --no-cache-dir
 
@@ -13,8 +16,6 @@ RUN pip install -r requirements.txt --no-cache-dir
 COPY . .
 
 CMD ["gunicorn", "--bind","0.0.0.0:8000", "foodgram_backend.wsgi:application"]
-
-RUN apt-get update && apt-get install -y make mc tree nano
 
 RUN make migrate_load
 
