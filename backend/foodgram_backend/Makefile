@@ -2,6 +2,9 @@ include .env
 
 export
 
+static:
+	python3 manage.py collectstatic
+
 create_superuser:
 	python3 manage.py createsuperuser --noinput
 
@@ -20,5 +23,8 @@ migrate_load:
 	python3 manage.py makemigrations \
     	&& python3 manage.py migrate \
     	&& python3 manage.py loadcsv
+
+copy_static:
+	cp -r /app/collected_static/. /backend_static/static/
 
 

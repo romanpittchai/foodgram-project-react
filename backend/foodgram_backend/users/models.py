@@ -1,5 +1,5 @@
-from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
 
 from utils.constants import AMOUNT_CHAR_TO_SLICE
@@ -87,7 +87,6 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         related_name='following',
     )
-
 
     class Meta:
         ordering = ('-id',)

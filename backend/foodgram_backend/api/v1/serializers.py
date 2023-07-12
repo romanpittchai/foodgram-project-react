@@ -1,13 +1,11 @@
 from collections import OrderedDict
 
-#from django.db import transaction
-
-from django.shortcuts import get_object_or_404
 from djoser.serializers import (CurrentPasswordSerializer, PasswordSerializer,
                                 UserCreateSerializer, UserSerializer)
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, Recipe, RecipeAndIngredient, Tag
 from rest_framework import serializers
+
+from recipes.models import Ingredient, Recipe, RecipeAndIngredient, Tag
 from users.models import User
 
 
@@ -17,7 +15,7 @@ class CustUserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        
+
         fields = (
             'email', 'id',
             'username',
@@ -31,7 +29,7 @@ class CustUserSerializer(UserSerializer):
         if request and request.user.is_authenticated:
             return obj.following.filter(user=request.user).exists()
         return False
-    
+
 
 class RegistrationSerializer(UserCreateSerializer):
     """Сериализатор для регистрации нового пользователя."""
@@ -45,6 +43,7 @@ class RegistrationSerializer(UserCreateSerializer):
             'last_name',
             'password',
         )
+
 
 class ChangePasswordSerializer(CurrentPasswordSerializer, PasswordSerializer):
     """Сериализатор для изменения пароля."""
@@ -96,12 +95,12 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериалайзер для ингридиента."""
     class Meta:
         model = Ingredient
         fields = '__all__'
+
 
 class RecipeLightSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения рецептов на странице подписок."""
@@ -112,6 +111,7 @@ class RecipeLightSerializer(serializers.ModelSerializer):
             'image', 'cooking_time',
             'pub_date',
         )
+
 
 class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
     """
@@ -151,7 +151,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
 
-
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
@@ -163,7 +162,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.is_in_shopping_cart(request.user)
         return False
-        
 
     class Meta:
         model = Recipe
@@ -176,9 +174,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text', 'cooking_time',
         )
 
-class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
-   
 
+class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
+    """Создание рецепта."""
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient', queryset=Ingredient.objects.all())
 
@@ -198,7 +196,9 @@ class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
 
 class RecipeCreateSerializer(RecipeSerializer):
     """Сериализатор для создания и обновления рецептов."""
-    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects.all(),
+    )
     ingredients = RecipeCreateIngredientsSerializer(
         many=True, source='recipeingredients'
     )

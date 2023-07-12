@@ -1,46 +1,31 @@
-
+from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as rf_filters
-
-from rest_framework import mixins, permissions, status, viewsets, views, filters
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Paragraph, SimpleDocTemplate
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from django.http import HttpResponse
-from django.db.models import Sum
-from django.conf import settings
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib.pagesizes import A4
 
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph
+from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
+                            RecipeAndIngredient, ShoppingList, Tag)
+from users.models import Follow, User
+from utils.constants import (BODY_FONT_SIZE, BULLET_INDENT, HEADER_FONT_SIZE,
+                             LEFT_INDENT)
 
-from users.models import User, Follow
 from ..filters import IngredientFilter, RecipeFilter
-from ..permissions import (
-    IsAdminOrReadOnly,
-    IsAuthorOrReadOnly,
-    IsAuthorOrAdmin,
-)  
-from .serializers import (
-    ChangePasswordSerializer,
-    RegistrationSerializer,
-    CustUserSerializer,
-    IngredientSerializer,
-    RecipeCreateSerializer,
-    RecipeLightSerializer,
-    RecipeSerializer,
-    SubscriptionSerializer,
-    TagSerializer,
-)
-from recipes.models import Recipe, RecipeAndIngredient, Tag, Ingredient, FavoriteRecipe, ShoppingList
-from utils.constants import (
-    HEADER_FONT_SIZE, BODY_FONT_SIZE,
-    LEFT_INDENT, BULLET_INDENT,
-)
+from ..permissions import IsAuthorOrAdmin, IsAuthorOrReadOnly
+from .serializers import (ChangePasswordSerializer, CustUserSerializer,
+                          IngredientSerializer, RecipeCreateSerializer,
+                          RecipeLightSerializer, RecipeSerializer,
+                          RegistrationSerializer, SubscriptionSerializer,
+                          TagSerializer)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для класса User."""
@@ -75,7 +60,6 @@ class UserViewSet(viewsets.ModelViewSet):
             context=self.get_serializer_context()
         )
         return self.get_paginated_response(serializer.data)
-    
 
     @action(
         methods=['post', 'delete'],
@@ -182,7 +166,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         IsAuthorOrReadOnly,
         IsAuthorOrAdmin,
     ]
-    filter_backends = [rf_filters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [
+        rf_filters.DjangoFilterBackend,
+        filters.SearchFilter, filters.OrderingFilter
+    ]
     filterset_class = RecipeFilter
     search_fields = ['name', 'author__username']
     ordering_fields = ['name', 'pub_date']
@@ -200,11 +187,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def create_delete_or_scold(self, model, recipe, request):
         instance = model.objects.filter(recipe=recipe, user=request.user)
-        name = model.__name__
         if request.method == 'DELETE':
             if not instance.exists():
                 content = {
-                    'errors': f'Этого рецепта нет в вашем списке.'
+                    'errors': 'Этого рецепта нет в вашем списке.'
                 }
                 return Response(
                     content,
@@ -212,16 +198,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
             instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        
+
         if instance.exists():
             content = {
-                'errors': f'Этот рецепт уже был в вашем списке.'
+                'errors': 'Этот рецепт уже был в вашем списке.'
             }
             return Response(
                 content,
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         model.objects.create(user=request.user, recipe=recipe)
         serializer = RecipeLightSerializer(
             recipe,
@@ -252,23 +238,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self.create_delete_or_scold(ShoppingList, recipe, request)
 
     @action(
-    detail=False,
-    permission_classes=[permissions.IsAuthenticated]
-)
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated]
+    )
     def download_shopping_cart(self, request):
         shopping_list = (
             RecipeAndIngredient.objects
             .filter(recipe__shopping_list__user=request.user)
             .order_by('ingredient')
             .prefetch_related('ingredient', 'recipe')
-            .values('ingredient__name', 'ingredient__measurement_unit', 'recipe__name', 'amount')
+            .values(
+                'ingredient__name',
+                'ingredient__measurement_unit',
+                'recipe__name', 'amount'
+            )
             .annotate(total=Sum('amount'))
         )
 
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="Ваш_список_покупок.pdf"'
+        response['Content-Disposition'] = (
+            'attachment; filename="Ваш_список_покупок.pdf"'
+        )
 
-        pdfmetrics.registerFont(TTFont('Xolonium-Regular', 'Xolonium-Regular.ttf'))
+        pdfmetrics.registerFont(TTFont(
+            'Xolonium-Regular', 'Xolonium-Regular.ttf'
+        ))
         styles = getSampleStyleSheet()
         header_style = styles['Heading1']
         header_style.fontName = 'Xolonium-Regular'
@@ -277,9 +271,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         body_style.fontName = 'Xolonium-Regular'
         body_style.fontSize = BODY_FONT_SIZE
 
-
         doc = SimpleDocTemplate(response, pagesize=A4)
-        bullet_style = ParagraphStyle('Bullet', parent=body_style, leftIndent=LEFT_INDENT, bulletIndent=BULLET_INDENT, fontSize=BODY_FONT_SIZE, fontName="Xolonium-Regular",)
+        bullet_style = ParagraphStyle(
+            'Bullet', parent=body_style,
+            leftIndent=LEFT_INDENT,
+            bulletIndent=BULLET_INDENT,
+            fontSize=BODY_FONT_SIZE,
+            fontName="Xolonium-Regular",
+        )
 
         story = []
 
@@ -292,8 +291,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             unit = item['ingredient__measurement_unit']
             total = item['total']
             line = f"• {name} - {total} {unit}"
-            recipe_name = item['recipe__name']
-            amount = item['amount']
 
             line = Paragraph(line, bullet_style)
             story.append(line)

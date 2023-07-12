@@ -1,19 +1,16 @@
 from django.conf import settings
 from django.contrib import admin
 
-from .models import (
-    Tag, Ingredient, Recipe,
-    RecipeAndIngredient, FavoriteRecipe,
-    ShoppingList,
-)
+from .models import (FavoriteRecipe, Ingredient, Recipe, RecipeAndIngredient,
+                     ShoppingList, Tag)
 
 admin.site.site_title = 'Администрирование проекта FoodGram'
 admin.site.site_header = 'Администрирование проекта FoodGram'
 
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели Tag."""
-
     list_display = ('pk', 'name', 'color', 'slug',)
     list_display_links = ('name', 'slug',)
     search_fields = ('name', 'color', 'slug',)
@@ -23,10 +20,10 @@ class TagAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
     ordering = ('pk',)
 
+
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели Ingredient."""
-
     list_display = ('pk', 'name', 'measurement_unit',)
     list_display_links = ('name',)
     search_fields = ('name',)
@@ -35,13 +32,13 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
     ordering = ('pk',)
 
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели Recipe."""
-
     list_display = (
         'pk', 'name',
-        'author','text',
+        'author', 'text',
         'cooking_time', 'pub_date',
     )
     list_display_links = ('name', 'author',)
@@ -51,10 +48,10 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
     ordering = ('pk',)
 
+
 @admin.register(RecipeAndIngredient)
 class RecipeAndIngredientAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели RecipeAndIngredient."""
-
     list_display = (
         'pk', 'recipe',
         'ingredient', 'amount',
@@ -66,10 +63,10 @@ class RecipeAndIngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
     ordering = ('pk',)
 
+
 @admin.register(FavoriteRecipe)
 class FavoriteRecipeAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели FavoriteRecipe."""
-
     list_display = ('pk', 'recipe', 'user',)
     list_display_links = ('recipe', 'user',)
     search_fields = ('recipe', 'user',)
@@ -78,10 +75,10 @@ class FavoriteRecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
     ordering = ('pk',)
 
+
 @admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели ShoppingList."""
-
     list_display = ('pk', 'recipe', 'user',)
     list_display_links = ('recipe', 'user',)
     search_fields = ('recipe', 'user',)

@@ -1,12 +1,8 @@
+from django.urls import include, path
 from rest_framework import routers
 
-from django.urls import include, path
-
-from .views import (
-    UserViewSet, SelfUserView,
-    ChangePasswordView, TagViewSet,
-    IngredientViewSet, RecipeViewSet,
-)
+from .views import (ChangePasswordView, IngredientViewSet, RecipeViewSet,
+                    SelfUserView, TagViewSet, UserViewSet)
 
 app_name = 'api'
 
@@ -23,9 +19,8 @@ router_for_v1.register(
 )
 
 urlpatterns = [
-    
     path(
-        'users/me/',SelfUserView.as_view(),
+        'users/me/', SelfUserView.as_view(),
         name='me'
     ),
     path(

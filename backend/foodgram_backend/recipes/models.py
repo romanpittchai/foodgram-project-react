@@ -1,8 +1,5 @@
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-    RegexValidator
-)
+from django.core.validators import (MaxValueValidator, MinValueValidator,
+                                    RegexValidator)
 from django.db import models
 
 from users.models import User
@@ -47,7 +44,6 @@ class Tag(models.Model):
         )]
     )
 
-
     class Meta:
         ordering = ('name',)
         verbose_name = 'Тег'
@@ -78,7 +74,6 @@ class Ingredient(models.Model):
         help_text='Задайте единицу измерения'
     )
 
-
     class Meta:
         ordering = ('name',)
         verbose_name = 'Ингредиент'
@@ -91,8 +86,10 @@ class Ingredient(models.Model):
         ]
 
     def __str__(self) -> str:
-        return (f'Название ингредиента {self.name[:AMOUNT_CHAR_TO_SLICE]} '
-                f'с ед. измерения {self.measurement_unit[:AMOUNT_CHAR_TO_SLICE]}.')
+        return (
+            f'Название ингредиента {self.name[:AMOUNT_CHAR_TO_SLICE]} '
+            f'с ед. измерения {self.measurement_unit[:AMOUNT_CHAR_TO_SLICE]}.'
+        )
 
 
 class Recipe(models.Model):
@@ -108,18 +105,18 @@ class Recipe(models.Model):
         User,
         verbose_name='Автор рецепта',
         help_text='Автор рецепта',
-        related_name = 'recipes',
+        related_name='recipes',
         on_delete=models.CASCADE
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Теги',
         help_text='Выбор тегов',
-        related_name = 'recipes',
+        related_name='recipes',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        related_name = 'recipes',
+        related_name='recipes',
         through='RecipeAndIngredient',
         verbose_name='Ингредиенты',
         help_text='Выбор ингредиентов',
@@ -136,7 +133,7 @@ class Recipe(models.Model):
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления в мин',
         help_text='Задайте время приготовления '
-                  'блюда в минутах', 
+                  'блюда в минутах',
         validators=[
             MinValueValidator(1, 'Нельзя задать меньше 1 мин!'),
             MaxValueValidator(1440, 'Нельзя задать больше суток!'),
@@ -166,7 +163,6 @@ class Recipe(models.Model):
                 name='unique_author_name'
             )
         ]
-
 
 
 class RecipeAndIngredient(models.Model):
@@ -234,7 +230,6 @@ class FavoriteRecipe(models.Model):
         related_name='favorite_recipe',
     )
 
-
     class Meta:
         ordering = ('-id',)
         verbose_name = 'Избранный рецепт'
@@ -250,7 +245,7 @@ class FavoriteRecipe(models.Model):
         return (f'Избранный рецепт {self.recipe[:AMOUNT_CHAR_TO_SLICE]} '
                 f'пользователя {self.user}.')
 
-    
+
 class ShoppingList(models.Model):
     """Модель для списка покупок."""
     user = models.ForeignKey(
@@ -267,7 +262,6 @@ class ShoppingList(models.Model):
         on_delete=models.CASCADE,
         related_name='shopping_list',
     )
-
 
     class Meta:
         ordering = ('-id',)

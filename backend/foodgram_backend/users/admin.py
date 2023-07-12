@@ -1,21 +1,19 @@
 from django.conf import settings
 from django.contrib import admin
 
-from .models import User, Follow
+from .models import Follow, User
 
 admin.site.site_title = 'Администрирование проекта FoodGram'
 admin.site.site_header = 'Администрирование проекта FoodGram'
 
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели User."""
-
     list_display = (
         'pk', 'email',
-        #'role', 
         'username',
         'first_name', 'last_name',
-        #'bio', 'date_joined',
     )
     list_display_links = ('username',)
     search_fields = ('email', 'username',)
@@ -28,7 +26,6 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели Follow."""
-
     list_display = (
         'pk', 'user',
         'author',

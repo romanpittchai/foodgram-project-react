@@ -16,9 +16,7 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   web:
-    build: 
-      context: ./backend/foodgram_backend
-      dockerfile: Dockerfile
+    build: ./backend/foodgram_backend/
     env_file: .env
     restart: always
     volumes:
@@ -48,7 +46,7 @@ services:
       - ./frontend/build:/usr/share/nginx/html/
       - ./docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
       - ./docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
-      - static:/var/html/backend_static/
+      - static:/var/html/static/
       - media:/var/html/media/
       - ./dodge_the_creepse:/usr/share/nginx/html/easter_egg/
     depends_on:

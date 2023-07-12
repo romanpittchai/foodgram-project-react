@@ -1,7 +1,6 @@
 
 from django_filters import rest_framework as filters
 
-
 from recipes.models import Ingredient, Recipe, Tag
 
 
@@ -34,7 +33,6 @@ class RecipeFilter(filters.FilterSet):
     def get_favorite(self, queryset, name, value):
         if value:
             return queryset.filter(favorite_recipe__user=self.request.user)
-
 
     def get_shopping_cart(self, queryset, name, value):
         if value:
