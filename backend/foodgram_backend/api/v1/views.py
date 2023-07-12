@@ -1,13 +1,22 @@
+
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as rf_filters
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase.pdfmetrics import registerFont
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
+
 from rest_framework import mixins, permissions, status, viewsets, views, filters
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from django.http import HttpResponse
+from django.db.models import Sum
+from django.conf import settings
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.pagesizes import A4
+
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph
 
 from users.models import User, Follow
 from ..filters import IngredientFilter, RecipeFilter
@@ -29,9 +38,8 @@ from .serializers import (
 )
 from recipes.models import Recipe, RecipeAndIngredient, Tag, Ingredient, FavoriteRecipe, ShoppingList
 from utils.constants import (
-    HEADER_FONT_SIZE, BODY_FONT_SIZE, HEADER_LEFT_MARGIN,
-    BODY_LEFT_MARGIN, HEADER_HEIGHT, BODY_FIRST_LINE_HEIGHT,
-    LINE_SPACING, BOTTOM_MARGIN, BULLET_POINT_SYMBOL
+    HEADER_FONT_SIZE, BODY_FONT_SIZE,
+    LEFT_INDENT, BULLET_INDENT,
 )
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -244,57 +252,51 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self.create_delete_or_scold(ShoppingList, recipe, request)
 
     @action(
-        detail=False,
-        permission_classes=[
-            permissions.IsAuthenticated
-        ]
-    )
+    detail=False,
+    permission_classes=[permissions.IsAuthenticated]
+)
     def download_shopping_cart(self, request):
-        recipes_ingredients = RecipeAndIngredient.objects.filter(
-            recipe__shopping__user=request.user
-        ).order_by('ingredient')
-        cart = recipes_ingredients.values(
-            'ingredient__name', 'ingredient__measurement_unit',
-        ).annotate(total=Sum('amount'))
-
-        shopping_list: list = []
-        for ingredient in cart:
-            name = ingredient['ingredient__name']
-            unit = ingredient['ingredient__measurement_unit']
-            total = ingredient['total']
-            line = f"{BULLET_POINT_SYMBOL} {name} - {total} {unit}"
-            recipes = recipes_ingredients.filter(ingredient__name=name)
-            recipes_names = [
-                (item.recipe.name, item.amount) for item in recipes
-            ]
-            shopping_list.append((line, recipes_names))
-
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="shopping.pdf"'
-        paper_sheet = canvas.Canvas(response, pagesize=A4)
-        registerFont(TTFont('FreeSans', 'FreeSans.ttf'))
-
-        paper_sheet.setFont('FreeSans', HEADER_FONT_SIZE)
-        paper_sheet.drawString(
-            HEADER_LEFT_MARGIN, HEADER_HEIGHT, 'Список покупок'
+        shopping_list = (
+            RecipeAndIngredient.objects
+            .filter(recipe__shopping_list__user=request.user)
+            .order_by('ingredient')
+            .prefetch_related('ingredient', 'recipe')
+            .values('ingredient__name', 'ingredient__measurement_unit', 'recipe__name', 'amount')
+            .annotate(total=Sum('amount'))
         )
 
-        paper_sheet.setFont('FreeSans', BODY_FONT_SIZE)
-        y_coordinate = BODY_FIRST_LINE_HEIGHT
-        for ingredient, recipes_names in shopping_list:
-            paper_sheet.drawString(BODY_LEFT_MARGIN, y_coordinate, ingredient)
-            y_coordinate -= LINE_SPACING
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="Ваш_список_покупок.pdf"'
 
-            for recipe_name in recipes_names:
-                if y_coordinate <= BOTTOM_MARGIN:
-                    paper_sheet.showPage()
-                    y_coordinate = BODY_FIRST_LINE_HEIGHT
-                    paper_sheet.setFont('FreeSans', BODY_FONT_SIZE)
-                recipe_line = f"  {recipe_name[0]} ({recipe_name[1]})"
-                paper_sheet.drawString(
-                    BODY_LEFT_MARGIN, y_coordinate, recipe_line
-                )
-                y_coordinate -= LINE_SPACING
+        pdfmetrics.registerFont(TTFont('Xolonium-Regular', 'Xolonium-Regular.ttf'))
+        styles = getSampleStyleSheet()
+        header_style = styles['Heading1']
+        header_style.fontName = 'Xolonium-Regular'
+        header_style.fontSize = HEADER_FONT_SIZE
+        body_style = styles['BodyText']
+        body_style.fontName = 'Xolonium-Regular'
+        body_style.fontSize = BODY_FONT_SIZE
 
-        paper_sheet.save()
+
+        doc = SimpleDocTemplate(response, pagesize=A4)
+        bullet_style = ParagraphStyle('Bullet', parent=body_style, leftIndent=LEFT_INDENT, bulletIndent=BULLET_INDENT, fontSize=BODY_FONT_SIZE, fontName="Xolonium-Regular",)
+
+        story = []
+
+        header_text = 'Ваш список покупок:'
+        header = Paragraph(header_text, header_style)
+        story.append(header)
+
+        for item in shopping_list:
+            name = item['ingredient__name']
+            unit = item['ingredient__measurement_unit']
+            total = item['total']
+            line = f"• {name} - {total} {unit}"
+            recipe_name = item['recipe__name']
+            amount = item['amount']
+
+            line = Paragraph(line, bullet_style)
+            story.append(line)
+
+        doc.build(story)
         return response

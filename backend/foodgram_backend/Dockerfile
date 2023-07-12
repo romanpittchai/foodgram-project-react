@@ -16,11 +16,8 @@ CMD ["gunicorn", "--bind","0.0.0.0:8000", "foodgram_backend.wsgi:application"]
 
 RUN apt-get update && apt-get install -y make mc tree nano
 
-RUN python3 manage.py makemigrations
-
-RUN python3 manage.py migrate
-
-RUN python3 manage.py loadcsv
+RUN make migrate_load
 
 RUN make create_superuser \
-    && make create_user
+    && make create_user \
+    && make del_env

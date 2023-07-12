@@ -4,6 +4,7 @@ volumes:
   pg_data:
   static:
   media:
+  easter_egg:
 
 services:
 
@@ -36,7 +37,9 @@ services:
       - web
 
   gateway:
-    build: ./infra/
+    build: 
+      context: ./infra/
+      dockerfile: Dockerfile
     restart: always
     env_file: .env
     ports:
@@ -47,6 +50,7 @@ services:
       - ./docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
       - static:/var/html/backend_static/
       - media:/var/html/media/
+      - ./dodge_the_creepse:/usr/share/nginx/html/easter_egg/
     depends_on:
       - web
       - frontend
