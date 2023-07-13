@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update && \
     apt-get install -y --no-install-recommends apt-utils && \
     apt-get upgrade -y && \
-    apt-get install -y make mc tree nano
+    apt-get install -y mc tree nano
 
 RUN python3 -m pip install --upgrade pip --no-cache-dir
 
@@ -17,8 +17,6 @@ COPY . .
 
 CMD ["gunicorn", "--bind","0.0.0.0:8000", "foodgram_backend.wsgi:application"]
 
-RUN make migrate_load
+RUN chmod +x entrypoint.sh
 
-RUN make create_superuser \
-    && make create_user \
-    && make del_env
+RUN "./entrypoint.sh"

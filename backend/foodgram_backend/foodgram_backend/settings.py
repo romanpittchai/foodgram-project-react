@@ -115,7 +115,7 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
-STATIC_CSV_JSON_FILES_DIRS = os.path.join((BASE_DIR / 'static/data'),)
+STATIC_CSV_JSON_FILES_DIRS = os.path.join((BASE_DIR / 'static_csv/data'),)
 
 MEDIA_URL = '/media/'
 
