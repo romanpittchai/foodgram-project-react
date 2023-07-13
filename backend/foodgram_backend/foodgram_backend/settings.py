@@ -115,7 +115,7 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
-STATIC_CSV_JSON_FILES_DIRS = os.path.join((BASE_DIR / 'static_csv/data'),)
+STATIC_CSV_JSON_FILES_DIRS = os.path.join((BASE_DIR / 'static_file/data'),)
 
 MEDIA_URL = '/media/'
 
@@ -131,18 +131,6 @@ LOGIN_REDIRECT_URL = '/'
 
 LIST_SLICE = 15
 
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Foodgram',
-    'DESCRIPTION': 'Grocery_Assistant',
-    'VERSION': '1.0.0',
-    'SEARCH_PARAM': 'name',
-    'SWAGGER_UI_SETTINGS': {
-        'deepLinking': True,
-        'persistAuthorization': True,
-        'displayOperationId': True,
-    },
-}
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny', 
@@ -157,6 +145,4 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
-    
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }

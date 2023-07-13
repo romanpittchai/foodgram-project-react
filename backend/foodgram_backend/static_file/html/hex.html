@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 50px;
+        }
+
+        #color {
+            margin-top: 30px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        #generate-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #008000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hex Generator</h1>
+    <div id="color">#000000</div>
+    <button id="generate-button">Generate</button>
+
+    <script>
+        function generateHexColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        var colorDiv = document.getElementById('color');
+        var generateButton = document.getElementById('generate-button');
+
+        generateButton.addEventListener('click', function() {
+            var hexColor = generateHexColor();
+            colorDiv.textContent = hexColor;
+            document.body.style.backgroundColor = hexColor;
+        });
+    </script>
+</body>
+</html>
