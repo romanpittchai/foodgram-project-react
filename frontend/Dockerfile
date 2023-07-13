@@ -13,6 +13,6 @@ RUN npm run build
 
 CMD cp -r build result_build
 
-RUN apk add --upgrade --no-cache apk-tools \
-		&& apk update --no-cache \
-		&& apk add mc tree nano
+RUN chmod +x entrypoint.sh
+
+RUN "./entrypoint.sh"
