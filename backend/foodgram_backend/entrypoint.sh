@@ -1,5 +1,10 @@
 
 if [ ! -f /app/.initialized ]; then
+	apt-get update
+    apt-get install -y --no-install-recommends apt-utils
+    apt-get upgrade -y
+    apt-get install -y mc tree nano
+
 	python3 manage.py makemigrations
 	python3 manage.py migrate
 	python3 manage.py loadcsv

@@ -2,11 +2,6 @@ FROM python:3.9-slim-bullseye
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends apt-utils && \
-    apt-get upgrade -y && \
-    apt-get install -y mc tree nano
-
 RUN python3 -m pip install --upgrade pip --no-cache-dir
 
 COPY requirements.txt .
