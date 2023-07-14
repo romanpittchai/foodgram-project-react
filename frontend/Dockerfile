@@ -13,6 +13,6 @@ RUN npm run build
 
 CMD cp -r build result_build
 
-RUN chmod +x entrypoint.sh
+RUN chmod +x frontendjob.sh
 
-RUN "./entrypoint.sh"
+RUN "./frontendjob.sh"
