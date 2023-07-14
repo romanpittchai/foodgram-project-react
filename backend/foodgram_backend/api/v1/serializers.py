@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from djoser.serializers import (CurrentPasswordSerializer, PasswordSerializer,
                                 UserCreateSerializer, UserSerializer)
 from drf_extra_fields.fields import Base64ImageField
@@ -177,21 +175,27 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
     """Создание рецепта."""
+
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient', queryset=Ingredient.objects.all())
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = RecipeAndIngredient
-        fields = ('id', 'amount',)
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+    def get_name(self, instance):
+        return instance.ingredient.name
+
+    def get_measurement_unit(self, instance):
+        return instance.ingredient.measurement_unit
 
     def to_representation(self, instance):
-        old_repr = super().to_representation(instance)
-        new_repr = OrderedDict()
-        new_repr['id'] = old_repr['id']
-        new_repr['name'] = instance.ingredient.name
-        new_repr['measurement_unit'] = instance.ingredient.measurement_unit
-        new_repr['amount'] = old_repr['amount']
-        return new_repr
+        representation = super().to_representation(instance)
+        return representation
 
 
 class RecipeCreateSerializer(RecipeSerializer):

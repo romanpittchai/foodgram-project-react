@@ -1,15 +1,13 @@
 
-if [ ! -f /app/.initialized ]; then
 	apt-get update
     apt-get install -y --no-install-recommends apt-utils
     apt-get upgrade -y
     apt-get install -y mc tree nano
 
+
 	python3 manage.py makemigrations
 	python3 manage.py migrate
 	python3 manage.py loadcsv
-
-	export $(grep -v '^#' .env | xargs)
 
 	python3 manage.py createsuperuser --noinput
 
@@ -20,10 +18,6 @@ EOF
 
 	python3 manage.py collectstatic
 	cp -r /app/collected_static/. /backend_static/
-	
 
-	touch /app/.initialized
-	rm .env
-fi
 
-exec "$@"
+"$@"

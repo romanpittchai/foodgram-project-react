@@ -19,7 +19,7 @@ services:
   web:
     build: ./backend/foodgram_backend/
     env_file: .env
-    restart: always
+    restart: "no"
     volumes:
       - static:/app/backend_static/
       - media:/app/media/

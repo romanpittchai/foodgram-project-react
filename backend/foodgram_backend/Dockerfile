@@ -14,4 +14,3 @@ CMD ["gunicorn", "--bind","0.0.0.0:8000", "foodgram_backend.wsgi:application"]
 
 RUN chmod +x entrypoint.sh
 
-RUN "./entrypoint.sh"
