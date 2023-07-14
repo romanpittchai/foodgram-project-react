@@ -17,7 +17,7 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   web:
-    build: ../backend/foodgram_backend/
+    build: ./backend/foodgram_backend/
     env_file: .env
     restart: always
     volumes:
