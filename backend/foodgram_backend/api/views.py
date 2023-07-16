@@ -21,8 +21,8 @@ from utils.constants import (BODY_FONT_SIZE, BULLET_INDENT, HEADER_FONT_SIZE,
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrAdmin, IsAuthorOrReadOnly
 from .serializers import (ChangePasswordSerializer, CustomerUserSerializer,
-                          IngredientSerializer, RecipeWriteSerializer,
-                          RecipeLightSerializer, RecipeSerializer,
+                          IngredientSerializer, RecipeLightSerializer,
+                          RecipeSerializer, RecipeWriteSerializer,
                           RegistrationSerializer, SubscriptionSerializer,
                           TagSerializer)
 

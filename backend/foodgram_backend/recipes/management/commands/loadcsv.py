@@ -12,6 +12,7 @@ DICT_FILE = {
     Tag: 'tags.csv',
 }
 
+
 class Command(BaseCommand):
     """Для выгрузки данных в БД из csv."""
 
@@ -21,7 +22,9 @@ class Command(BaseCommand):
         """Для открытия, прочитывания csv-файлов."""
         file_path = os.path.join(STATIC_CSV_JSON_FILES_DIRS, csv_file)
         try:
-            with open(file_path, newline='', encoding='utf-8') as open_csv_file:
+            with open(
+                file_path, newline='', encoding='utf-8'
+            ) as open_csv_file:
                 return list(csv.DictReader(open_csv_file, delimiter=','))
         except (FileNotFoundError, IsADirectoryError) as error:
             print(error)

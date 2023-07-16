@@ -214,6 +214,7 @@ class RecipeWriteSerializer(RecipeSerializer):
     ingredients = RecipeCreateIngredientsSerializer(
         many=True, source='recipeingredients'
     )
+
     def create_or_update_recipe_ingredients(self, recipe, ingredients):
         for ingredient_data in ingredients:
             if isinstance(ingredient_data['ingredient'], Ingredient):
