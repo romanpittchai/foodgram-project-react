@@ -47,7 +47,6 @@ services:
       - static:/var/html/static/
       - media:/var/html/media/
       - hex:/var/html/hex/
-      - ./dodge_the_creepse:/usr/share/nginx/html/easter_egg/
     depends_on:
       - web
       - frontend
