@@ -7,16 +7,6 @@ migrate-db:
 create-su:
 	python3 manage.py createsuperuser --noinput
 
-create-us:
-	python3 manage.py shell <<EOF \
-		from users.models import User; \
-		User.objects.create_user(username='$DJANGO_USERNAME', \
-			email='$DJANGO_EMAIL', \
-			first_name='$DJANGO_FIRST_NAME', \
-			last_name='$DJANGO_LAST_NAME', \
-			password='$DJANGO_PASSWORD') \
-	EOF
-
 load-db:
 	python3 manage.py loadcsv
 
