@@ -8,3 +8,6 @@ db.sqlite3.
 .idea
 .vscode
 .env
+migrations/
+.migrations
+migrations
