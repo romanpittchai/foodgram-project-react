@@ -13,15 +13,15 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
-                            RecipeAndIngredient, ShoppingList, Tag)
+                            RecipeIngredient, ShoppingList, Tag)
 from users.models import Follow, User
 from utils.constants import (BODY_FONT_SIZE, BULLET_INDENT, HEADER_FONT_SIZE,
                              LEFT_INDENT)
 
-from ..filters import IngredientFilter, RecipeFilter
-from ..permissions import IsAuthorOrAdmin, IsAuthorOrReadOnly
-from .serializers import (ChangePasswordSerializer, CustUserSerializer,
-                          IngredientSerializer, RecipeCreateSerializer,
+from .filters import IngredientFilter, RecipeFilter
+from .permissions import IsAuthorOrAdmin, IsAuthorOrReadOnly
+from .serializers import (ChangePasswordSerializer, CustomerUserSerializer,
+                          IngredientSerializer, RecipeWriteSerializer,
                           RecipeLightSerializer, RecipeSerializer,
                           RegistrationSerializer, SubscriptionSerializer,
                           TagSerializer)
@@ -29,8 +29,9 @@ from .serializers import (ChangePasswordSerializer, CustUserSerializer,
 
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для класса User."""
+
     queryset = User.objects.all()
-    serializer_class = CustUserSerializer
+    serializer_class = CustomerUserSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.SearchFilter]
     http_method_names = ['get', 'post', 'patch', 'delete']
@@ -44,7 +45,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return RegistrationSerializer
-        return CustUserSerializer
+        return CustomerUserSerializer
 
     @action(
         detail=False,
@@ -110,10 +111,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class SelfUserView(GenericAPIView):
     """Класс просмотра для отображения текущего пользователя."""
+
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = CustUserSerializer(
+        serializer = CustomerUserSerializer(
             request.user,
             context=self.get_serializer_context()
         )
@@ -122,6 +124,7 @@ class SelfUserView(GenericAPIView):
 
 class ChangePasswordView(GenericAPIView):
     """Для изменения пароля текущего пользователя."""
+
     permission_classes = [
         permissions.IsAuthenticated
     ]
@@ -140,6 +143,7 @@ class ChangePasswordView(GenericAPIView):
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Для отображения тега."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [permissions.AllowAny]
@@ -148,6 +152,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Для отображения ингредиента."""
+
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = [permissions.AllowAny]
@@ -182,7 +187,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
-            return RecipeCreateSerializer
+            return RecipeWriteSerializer
         return RecipeSerializer
 
     def create_delete_or_scold(self, model, recipe, request):
@@ -243,7 +248,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request):
         shopping_list = (
-            RecipeAndIngredient.objects
+            RecipeIngredient.objects
             .filter(recipe__shopping_list__user=request.user)
             .order_by('ingredient')
             .prefetch_related('ingredient', 'recipe')

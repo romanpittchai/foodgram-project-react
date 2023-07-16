@@ -14,6 +14,7 @@ DICT_FILE = {
 
 class Command(BaseCommand):
     """Для выгрузки данных в БД из csv."""
+
     help = 'Команда вы выгрузки тестовых данных в БД из .csv.'
 
     def open_csv_file(self, csv_file):
@@ -25,7 +26,6 @@ class Command(BaseCommand):
         except (FileNotFoundError, IsADirectoryError) as error:
             print(error)
             sys.exit()
-
 
     def load_to_bd(self, model, data):
         """Для выгрузки данных в БД."""

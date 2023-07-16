@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 
-from .models import (FavoriteRecipe, Ingredient, Recipe, RecipeAndIngredient,
+from .models import (FavoriteRecipe, Ingredient, Recipe, RecipeIngredient,
                      ShoppingList, Tag)
 
 admin.site.site_title = 'Администрирование проекта FoodGram'
@@ -11,6 +11,7 @@ admin.site.site_header = 'Администрирование проекта Food
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели Tag."""
+
     list_display = ('pk', 'name', 'color', 'slug',)
     list_display_links = ('name', 'slug',)
     search_fields = ('name', 'color', 'slug',)
@@ -24,6 +25,7 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели Ingredient."""
+
     list_display = ('pk', 'name', 'measurement_unit',)
     list_display_links = ('name',)
     search_fields = ('name',)
@@ -36,6 +38,7 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели Recipe."""
+
     list_display = (
         'pk', 'name',
         'author', 'text',
@@ -49,9 +52,10 @@ class RecipeAdmin(admin.ModelAdmin):
     ordering = ('pk',)
 
 
-@admin.register(RecipeAndIngredient)
-class RecipeAndIngredientAdmin(admin.ModelAdmin):
-    """Кастомизация кабинета администратора для модели RecipeAndIngredient."""
+@admin.register(RecipeIngredient)
+class RecipeIngredientAdmin(admin.ModelAdmin):
+    """Кастомизация кабинета администратора для модели RecipeIngredient."""
+
     list_display = (
         'pk', 'recipe',
         'ingredient', 'amount',
@@ -67,6 +71,7 @@ class RecipeAndIngredientAdmin(admin.ModelAdmin):
 @admin.register(FavoriteRecipe)
 class FavoriteRecipeAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели FavoriteRecipe."""
+
     list_display = ('pk', 'recipe', 'user',)
     list_display_links = ('recipe', 'user',)
     search_fields = ('recipe', 'user',)
@@ -79,6 +84,7 @@ class FavoriteRecipeAdmin(admin.ModelAdmin):
 @admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели ShoppingList."""
+
     list_display = ('pk', 'recipe', 'user',)
     list_display_links = ('recipe', 'user',)
     search_fields = ('recipe', 'user',)

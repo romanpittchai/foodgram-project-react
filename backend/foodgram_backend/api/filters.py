@@ -6,6 +6,7 @@ from recipes.models import Ingredient, Recipe, Tag
 
 class RecipeFilter(filters.FilterSet):
     """Фильтры для Recipe."""
+
     author = filters.CharFilter(
         lookup_expr='exact',
         label='author',
@@ -52,6 +53,7 @@ class RecipeFilter(filters.FilterSet):
 
 class IngredientFilter(filters.FilterSet):
     """Фильтр для Ingredient."""
+
     name = filters.CharFilter(
         field_name='name',
         lookup_expr='istartswith',

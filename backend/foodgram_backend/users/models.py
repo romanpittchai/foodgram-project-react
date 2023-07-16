@@ -73,6 +73,7 @@ class User(AbstractUser):
 
 class Follow(models.Model):
     """Модель подписки."""
+
     user = models.ForeignKey(
         User,
         verbose_name='Подписчик',

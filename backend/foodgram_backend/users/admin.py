@@ -10,6 +10,7 @@ admin.site.site_header = 'Администрирование проекта Food
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели User."""
+
     list_display = (
         'pk', 'email',
         'username',
@@ -26,6 +27,7 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели Follow."""
+
     list_display = (
         'pk', 'user',
         'author',

@@ -3,12 +3,13 @@ from djoser.serializers import (CurrentPasswordSerializer, PasswordSerializer,
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import Ingredient, Recipe, RecipeAndIngredient, Tag
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import User
 
 
-class CustUserSerializer(UserSerializer):
+class CustomerUserSerializer(UserSerializer):
     """Сериализатор для модели User."""
+
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -31,6 +32,7 @@ class CustUserSerializer(UserSerializer):
 
 class RegistrationSerializer(UserCreateSerializer):
     """Сериализатор для регистрации нового пользователя."""
+
     class Meta:
         model = User
 
@@ -45,6 +47,7 @@ class RegistrationSerializer(UserCreateSerializer):
 
 class ChangePasswordSerializer(CurrentPasswordSerializer, PasswordSerializer):
     """Сериализатор для изменения пароля."""
+
     def validate(self, data):
         new_password = data.get('new_password')
         current_password = data.get('current_password')
@@ -55,8 +58,9 @@ class ChangePasswordSerializer(CurrentPasswordSerializer, PasswordSerializer):
         return data
 
 
-class SubscriptionSerializer(CustUserSerializer):
+class SubscriptionSerializer(CustomerUserSerializer):
     """Сериализатор для подписки на других авторов рецептов."""
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -74,10 +78,9 @@ class SubscriptionSerializer(CustUserSerializer):
 
     def get_recipes(self, obj):
         recipes_limit = self.context['request'].GET.get('recipes_limit')
+        recipes = obj.recipes.all()
         if recipes_limit:
-            recipes = obj.recipes.all()[:int(recipes_limit)]
-        else:
-            recipes = obj.recipes.all()
+            recipes = recipes[:int(recipes_limit)]
         return RecipeLightSerializer(
             recipes, many=True, read_only=True
         ).data
@@ -88,6 +91,7 @@ class SubscriptionSerializer(CustUserSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериалайзер для тега."""
+
     class Meta:
         model = Tag
         fields = '__all__'
@@ -95,6 +99,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериалайзер для ингридиента."""
+
     class Meta:
         model = Ingredient
         fields = '__all__'
@@ -102,6 +107,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeLightSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения рецептов на странице подписок."""
+
     class Meta:
         model = Recipe
         fields = (
@@ -111,11 +117,12 @@ class RecipeLightSerializer(serializers.ModelSerializer):
         )
 
 
-class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
+class RecipeIngredientsSerializer(serializers.ModelSerializer):
     """
     Сериализатор для отображения ингредиентов
     определенного рецепта.
     """
+
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
         source='ingredient.id'
@@ -128,7 +135,7 @@ class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = RecipeAndIngredient
+        model = RecipeIngredient
         fields = (
             'id',
             'name',
@@ -139,9 +146,10 @@ class RecipeAndIngredientsSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения рецептов."""
+
     tags = TagSerializer(many=True)
-    author = CustUserSerializer(read_only=True)
-    ingredients = RecipeAndIngredientsSerializer(
+    author = CustomerUserSerializer(read_only=True)
+    ingredients = RecipeIngredientsSerializer(
         many=True,
         source='recipeingredients',
     )
@@ -184,7 +192,7 @@ class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = RecipeAndIngredient
+        model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
     def get_name(self, instance):
@@ -194,24 +202,19 @@ class RecipeCreateIngredientsSerializer(serializers.ModelSerializer):
         return instance.ingredient.measurement_unit
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        return representation
+        return super().to_representation(instance)
 
 
-class RecipeCreateSerializer(RecipeSerializer):
+class RecipeWriteSerializer(RecipeSerializer):
     """Сериализатор для создания и обновления рецептов."""
+
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all(),
     )
     ingredients = RecipeCreateIngredientsSerializer(
         many=True, source='recipeingredients'
     )
-
-    def create(self, validated_data):
-        tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipeingredients')
-        recipe = super().create(validated_data)
-        recipe.tags.set(tags)
+    def create_or_update_recipe_ingredients(self, recipe, ingredients):
         for ingredient_data in ingredients:
             if isinstance(ingredient_data['ingredient'], Ingredient):
                 ingredient = ingredient_data['ingredient']
@@ -221,11 +224,18 @@ class RecipeCreateSerializer(RecipeSerializer):
 
             if ingredient_id:
                 ingredient = Ingredient.objects.get(id=ingredient_id)
-                RecipeAndIngredient.objects.create(
+                RecipeIngredient.objects.create(
                     recipe=recipe,
                     ingredient=ingredient,
                     amount=ingredient_data['amount']
                 )
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('recipeingredients')
+        recipe = super().create(validated_data)
+        recipe.tags.set(tags)
+        self.create_or_update_recipe_ingredients(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
@@ -233,19 +243,6 @@ class RecipeCreateSerializer(RecipeSerializer):
         ingredients = validated_data.pop('recipeingredients')
         recipe = super().update(instance, validated_data)
         recipe.tags.set(tags)
-        RecipeAndIngredient.objects.filter(recipe=recipe).delete()
-        for ingredient_data in ingredients:
-            if isinstance(ingredient_data['ingredient'], Ingredient):
-                ingredient = ingredient_data['ingredient']
-                ingredient_id = ingredient.id
-            else:
-                ingredient_id = ingredient_data['ingredient'].get('id')
-
-            if ingredient_id:
-                ingredient = Ingredient.objects.get(id=ingredient_id)
-                RecipeAndIngredient.objects.create(
-                    recipe=recipe,
-                    ingredient=ingredient,
-                    amount=ingredient_data['amount']
-                )
+        RecipeIngredient.objects.filter(recipe=recipe).delete()
+        self.create_or_update_recipe_ingredients(recipe, ingredients)
         return recipe

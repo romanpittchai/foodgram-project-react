@@ -8,6 +8,7 @@ from utils.constants import AMOUNT_CHAR_TO_SLICE
 
 class Tag(models.Model):
     """Модель для тега."""
+
     name = models.CharField(
         max_length=200,
         unique=True,
@@ -61,6 +62,7 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Модель для ингредиента."""
+
     name = models.CharField(
         max_length=200,
         blank=False,
@@ -94,6 +96,7 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     """Модель для рецепта."""
+
     name = models.CharField(
         max_length=200,
         blank=False,
@@ -117,7 +120,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         related_name='recipes',
-        through='RecipeAndIngredient',
+        through='RecipeIngredient',
         verbose_name='Ингредиенты',
         help_text='Выбор ингредиентов',
     )
@@ -165,12 +168,13 @@ class Recipe(models.Model):
         ]
 
 
-class RecipeAndIngredient(models.Model):
+class RecipeIngredient(models.Model):
     """
     Вспомогательная модель для
     связки рецептов и ингредиентов,
     а так же для указания кол-ва.
     """
+
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
@@ -213,6 +217,7 @@ class RecipeAndIngredient(models.Model):
 
 class FavoriteRecipe(models.Model):
     """Модель для любимых рецептов."""
+
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
