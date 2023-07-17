@@ -20,7 +20,7 @@ from utils.constants import (BODY_FONT_SIZE, BULLET_INDENT, HEADER_FONT_SIZE,
 
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrAdmin, IsAuthorOrReadOnly
-from .serializers import (ChangePasswordSerializer, CustomerUserSerializer,
+from .serializers import (ChangePasswordSerializer, UserSerializer,
                           IngredientSerializer, RecipeLightSerializer,
                           RecipeSerializer, RecipeWriteSerializer,
                           RegistrationSerializer, SubscriptionSerializer,
@@ -31,7 +31,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """ViewSet для класса User."""
 
     queryset = User.objects.all()
-    serializer_class = CustomerUserSerializer
+    serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.SearchFilter]
     http_method_names = ['get', 'post', 'patch', 'delete']
@@ -45,7 +45,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return RegistrationSerializer
-        return CustomerUserSerializer
+        return UserSerializer
 
     @action(
         detail=False,
@@ -115,7 +115,7 @@ class SelfUserView(GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = CustomerUserSerializer(
+        serializer = UserSerializer(
             request.user,
             context=self.get_serializer_context()
         )

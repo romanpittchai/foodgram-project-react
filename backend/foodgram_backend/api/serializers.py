@@ -1,5 +1,6 @@
 from djoser.serializers import (CurrentPasswordSerializer, PasswordSerializer,
-                                UserCreateSerializer, UserSerializer)
+                                UserCreateSerializer)
+from djoser.serializers import UserSerializer as BaseUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
@@ -7,7 +8,7 @@ from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import User
 
 
-class CustomerUserSerializer(UserSerializer):
+class UserSerializer(BaseUserSerializer):
     """Сериализатор для модели User."""
 
     is_subscribed = serializers.SerializerMethodField()
@@ -58,7 +59,7 @@ class ChangePasswordSerializer(CurrentPasswordSerializer, PasswordSerializer):
         return data
 
 
-class SubscriptionSerializer(CustomerUserSerializer):
+class SubscriptionSerializer(UserSerializer):
     """Сериализатор для подписки на других авторов рецептов."""
 
     recipes = serializers.SerializerMethodField()
@@ -137,8 +138,7 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         fields = (
-            'id',
-            'name',
+            'id', 'name',
             'measurement_unit',
             'amount',
         )
@@ -148,7 +148,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения рецептов."""
 
     tags = TagSerializer(many=True)
-    author = CustomerUserSerializer(read_only=True)
+    author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientsSerializer(
         many=True,
         source='recipeingredients',
@@ -216,6 +216,7 @@ class RecipeWriteSerializer(RecipeSerializer):
     )
 
     def create_or_update_recipe_ingredients(self, recipe, ingredients):
+        recipe_ingredients = []
         for ingredient_data in ingredients:
             if isinstance(ingredient_data['ingredient'], Ingredient):
                 ingredient = ingredient_data['ingredient']
@@ -225,11 +226,13 @@ class RecipeWriteSerializer(RecipeSerializer):
 
             if ingredient_id:
                 ingredient = Ingredient.objects.get(id=ingredient_id)
-                RecipeIngredient.objects.create(
-                    recipe=recipe,
-                    ingredient=ingredient,
-                    amount=ingredient_data['amount']
+                recipe_ingredients.append(
+                    RecipeIngredient(recipe=recipe, ingredient=ingredient, amount=ingredient_data['amount'])
                 )
+
+        if recipe_ingredients:
+            RecipeIngredient.objects.bulk_create(recipe_ingredients)
+
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
