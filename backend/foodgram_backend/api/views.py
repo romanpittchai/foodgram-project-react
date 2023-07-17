@@ -20,11 +20,11 @@ from utils.constants import (BODY_FONT_SIZE, BULLET_INDENT, HEADER_FONT_SIZE,
 
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrAdmin, IsAuthorOrReadOnly
-from .serializers import (ChangePasswordSerializer, UserSerializer,
-                          IngredientSerializer, RecipeLightSerializer,
-                          RecipeSerializer, RecipeWriteSerializer,
-                          RegistrationSerializer, SubscriptionSerializer,
-                          TagSerializer)
+from .serializers import (ChangePasswordSerializer, IngredientSerializer,
+                          RecipeLightSerializer, RecipeSerializer,
+                          RecipeWriteSerializer, RegistrationSerializer,
+                          SubscriptionSerializer, TagSerializer,
+                          UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):

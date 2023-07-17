@@ -227,12 +227,14 @@ class RecipeWriteSerializer(RecipeSerializer):
             if ingredient_id:
                 ingredient = Ingredient.objects.get(id=ingredient_id)
                 recipe_ingredients.append(
-                    RecipeIngredient(recipe=recipe, ingredient=ingredient, amount=ingredient_data['amount'])
+                    RecipeIngredient(
+                        recipe=recipe, ingredient=ingredient,
+                        amount=ingredient_data['amount']
+                    )
                 )
 
         if recipe_ingredients:
             RecipeIngredient.objects.bulk_create(recipe_ingredients)
-
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
