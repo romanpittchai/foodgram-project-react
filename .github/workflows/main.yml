@@ -3,7 +3,6 @@ name: Main foogram workflow
 on: [push]
 
 jobs:
-
   flake8:
     runs-on: ubuntu-latest
     steps:
@@ -14,12 +13,11 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          cd backend/foodgram_backend
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install -r ./backend/foodgram_backend/requirements.txt
       - name: Test with flake8
         run: |
-          python3 -m flake8 backend/
+          python -m flake8 backend/foodgram_backend/
 
   build_and_push_to_docker_hub:
     name: Push Docker image to Docker Hub
