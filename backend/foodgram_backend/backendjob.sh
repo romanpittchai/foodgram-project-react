@@ -7,10 +7,6 @@
 	python3 manage.py collectstatic
 	cp -r /app/collected_static/. backend_static/
 
-if ! docker volume ls | grep -q "No volumes"; then
-    exit 0
-fi
-
 	python3 manage.py makemigrations
 	python3 manage.py migrate
 	python3 manage.py loadcsv
