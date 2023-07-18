@@ -43,13 +43,21 @@ class RecipeAdmin(admin.ModelAdmin):
         'pk', 'name',
         'author', 'text',
         'cooking_time', 'pub_date',
+        'total_favorites',
     )
     list_display_links = ('name', 'author',)
     search_fields = ('name', 'author',)
     list_filter = ('id', 'name', 'author',)
+    readonly_fields = ['total_favorites']
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
     ordering = ('pk',)
+
+    @admin.display(
+        description='Кол-во добавлений в избранное',
+    )
+    def total_favorites(self, obj):
+        return obj.favorite_recipe.count()
 
 
 @admin.register(RecipeIngredient)
