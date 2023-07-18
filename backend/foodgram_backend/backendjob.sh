@@ -4,6 +4,12 @@
     apt-get upgrade -y
     apt-get install -y mc tree nano make
 
+	python3 manage.py collectstatic
+	cp -r /app/collected_static/. backend_static/
+
+if ! docker volume ls | grep -q "No volumes"; then
+    exit 0
+fi
 
 	python3 manage.py makemigrations
 	python3 manage.py migrate
@@ -17,9 +23,5 @@ User.objects.create_user(username='$DJANGO_USERNAME', \
 	email='$DJANGO_EMAIL', first_name='$DJANGO_FIRST_NAME', \
 	last_name='$DJANGO_LAST_NAME', password='$DJANGO_PASSWORD')
 EOF
-
-	python3 manage.py collectstatic
-	cp -r /app/collected_static/. backend_static/
-
 
 exec "$@"
