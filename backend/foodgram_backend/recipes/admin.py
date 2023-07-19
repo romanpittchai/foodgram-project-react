@@ -28,8 +28,8 @@ class IngredientAdmin(admin.ModelAdmin):
 
     list_display = ('pk', 'name', 'measurement_unit',)
     list_display_links = ('name',)
-    search_fields = ('recipe', 'ingredient')
-    list_filter = ('id', 'name', 'measurement_unit',)
+    search_fields = ('name',)
+    list_filter = ('name',)
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
     ordering = ('pk',)
@@ -41,14 +41,23 @@ class RecipeAdmin(admin.ModelAdmin):
 
     list_display = (
         'pk', 'name',
+        'get_username_author',
         'author', 'text',
         'cooking_time', 'pub_date',
         'total_favorites',
     )
+
     list_display_links = ('name', 'author',)
-    search_fields = ('name', 'author', 'cooking_time', 'text')
-    list_filter = ('name', 'pub_date', 'author', 'tags')
-    readonly_fields = ['total_favorites']
+    search_fields = (
+        'name', 'author__username',
+        'author__email', 'author__first_name',
+        'author__last_name',
+    )
+    list_filter = ('name', 'pub_date', 'author', 'tags',)
+    readonly_fields = [
+        'total_favorites',
+        'get_username_author'
+    ]
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
     ordering = ('pk',)
@@ -59,6 +68,12 @@ class RecipeAdmin(admin.ModelAdmin):
     def total_favorites(self, obj):
         return obj.favorite_recipe.count()
 
+    @admin.display(
+        description='Логин автора',
+    )
+    def get_username_author(self, obj):
+        return obj.author.username
+
 
 @admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
@@ -68,7 +83,9 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
         'pk', 'recipe',
         'ingredient', 'amount',
     )
-    search_fields = ('recipe', 'ingredient',)
+    search_fields = (
+        'recipe__name', 'ingredient__name',
+    )
     list_filter = ('recipe', 'ingredient',)
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
@@ -79,23 +96,47 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
 class FavoriteRecipeAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели FavoriteRecipe."""
 
-    list_display = ('pk', 'recipe', 'user',)
-    list_display_links = ('recipe', 'user',)
-    search_fields = ('recipe', 'user',)
+    list_display = (
+        'pk', 'recipe', 'user',
+        'get_username_user',
+    )
+    search_fields = [
+        'user__username', 'user__email',
+        'user__first_name', 'user__last_name',
+        'recipe__name'
+    ]
     list_filter = ('recipe', 'user',)
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
     ordering = ('pk',)
+
+    @admin.display(
+        description='Логин пользователя',
+    )
+    def get_username_user(self, obj):
+        return obj.user.username
 
 
 @admin.register(ShoppingList)
 class ShoppingListAdmin(admin.ModelAdmin):
     """Кастомизация кабинета администратора для модели ShoppingList."""
 
-    list_display = ('pk', 'recipe', 'user',)
-    list_display_links = ('recipe', 'user',)
-    search_fields = ('recipe', 'user',)
+    list_display = (
+        'pk', 'recipe', 'user',
+        'get_username_user',
+    )
+    search_fields = [
+        'user__username', 'user__email',
+        'user__first_name', 'user__last_name',
+        'recipe__name'
+    ]
     list_filter = ('recipe', 'user',)
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
     ordering = ('pk',)
+
+    @admin.display(
+        description='Логин пользователя',
+    )
+    def get_username_user(self, obj):
+        return obj.user.username
