@@ -17,8 +17,8 @@ class UserAdmin(admin.ModelAdmin):
         'first_name', 'last_name',
     )
     list_display_links = ('username',)
-    search_fields = ('email', 'username',)
-    list_filter = ('id', 'email', 'username')
+    search_fields = ('username', 'first_name', 'last_name', 'email',)
+    list_filter = ('username', 'email', 'is_staff', 'date_joined')
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-empty-'
     ordering = ('pk',)

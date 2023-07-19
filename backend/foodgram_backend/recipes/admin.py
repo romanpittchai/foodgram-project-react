@@ -28,7 +28,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
     list_display = ('pk', 'name', 'measurement_unit',)
     list_display_links = ('name',)
-    search_fields = ('name',)
+    search_fields = ('recipe', 'ingredient')
     list_filter = ('id', 'name', 'measurement_unit',)
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
@@ -46,8 +46,8 @@ class RecipeAdmin(admin.ModelAdmin):
         'total_favorites',
     )
     list_display_links = ('name', 'author',)
-    search_fields = ('name', 'author',)
-    list_filter = ('id', 'name', 'author',)
+    search_fields = ('name', 'author', 'cooking_time', 'text')
+    list_filter = ('name', 'pub_date', 'author', 'tags')
     readonly_fields = ['total_favorites']
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
@@ -69,8 +69,8 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
         'ingredient', 'amount',
     )
     list_display_links = ('recipe',)
-    search_fields = ('recipe',)
-    list_filter = ('recipe',)
+    search_fields = ('recipe', 'ingredient',)
+    list_filter = ('recipe', 'ingredient',)
     list_per_page = settings.LIST_SLICE
     empty_value_display = '-пусто-'
     ordering = ('pk',)
