@@ -68,7 +68,6 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
         'pk', 'recipe',
         'ingredient', 'amount',
     )
-    list_display_links = ('recipe',)
     search_fields = ('recipe', 'ingredient',)
     list_filter = ('recipe', 'ingredient',)
     list_per_page = settings.LIST_SLICE
